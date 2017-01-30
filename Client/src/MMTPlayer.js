@@ -1,17 +1,22 @@
 var MMTPlayer = function (video, contotller) {
-    this.video = document.querySelector('video');;
-    this.controller = contotller;
-};
+    var video = document.querySelector('video');;
+    var controller = contotller;
 
-MMTPlayer.constructor = MMTPlayer;
+    var init = function () {
+        this.video = document.querySelector('video');
 
-MMTPlayer.prototype.video = null;
-MMTPlayer.prototype.contoller = null;
+        callSetup("172.16.39.133", 10000);
+        
+    };
 
-MMTPlayer.prototype.init = function () {
-    this.video = document.querySelector('video');
-};
+    var callSetup = function (host, port) {
+        var sockController = new SocketController();
+        var tcpSock = SocketController.createTCPSock(host, port);
+    };
 
-MMTPlayer.prototype.onPlay = function () {
+    var onPlay = function () {
 
+    };
+
+    init();
 };
