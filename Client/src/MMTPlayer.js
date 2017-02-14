@@ -1,22 +1,23 @@
-var MMTPlayer = function (video, contotller) {
-    var video = document.querySelector('video');;
-    var controller = contotller;
-
-    var init = function () {
-        this.video = document.querySelector('video');
-
-        callSetup("172.16.39.133", 10000);
-        
+var MMTPlayer = function (video, controller) {
+    var SocketController = require("./transport/SocketController.js").SocketController;
+	var init = function () {
+        callSetup("172.16.39.167", 10000);
     };
 
-    var callSetup = function (host, port) {
+	var callSetup = function (host, port) {
         var sockController = new SocketController();
-        var tcpSock = SocketController.createTCPSock(host, port);
+        var tcpSock = sockController.createTCPSock(host, port);
     };
 
-    var onPlay = function () {
+	var onPlay = function () {
 
     };
 
-    init();
+    return {
+        init : init,
+        callSetup : callSetup,
+        onPlay : onPlay
+    };
 };
+
+exports.MMTPlayer = MMTPlayer;

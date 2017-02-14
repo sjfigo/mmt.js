@@ -1,49 +1,79 @@
-var SocketController = function () {};
+var SocketController = function () {
+    /**
+     * Create and connect to server by tcp socket
+     * @param server ip address
+     * @param server port number
+     */
+    var createTCPSock = function (host, port) {
+        console.log("begin");
+        var net = require("net");
+        console.log(net);
+        var tcpSock = net.connect({host: host, port : port});
+        console.log(tcpSock);
+        tcpSock.on("connect", function () {
+            console.log("TCP connect!");
+        });
 
-/**
- * Create and connect to server by tcp socket
- * @param server ip address
- * @param server port number
- */
-SocketController.createTCPSock = function (host, port) {
-    var net = require('net');
-    var tcpSock = net.connect({host: host, port : port});
+        tcpSock.on("data", function (chunk) {
+            console.log("recv: " + chunk);
+            if(chunk.toString() === "socket test") {
+                tcpSock.write("ok");
+            }
+            else {
+                var udpSock = createUDPSock(host, chunk);
+            }
+        });
 
-    tcpSock.on('connect', function () {
-        console.log('TCP connect!');
-    });
+        tcpSock.on("end", function () {
+            console.log("disconnected.");
+        });
 
-    tcpSock.on('data', function (chunk) {
-        console.log('recv: ' + chunk);
-    });
+        tcpSock.on("error", function (err) {
+            console.log(err);
+        });
 
-    tcpSock.on('end', function () {
-        console.log('disconnected.');
-    });
+        tcpSock.on("timeout", function () {
+            console.log("connection timeout");
+        });
 
-    tcpSock.on('error', function (err) {
-        console.log(err);
-    });
+        return tcpSock;
+    };
 
-    tcpSock.on('timeout', function () {
-        console.log('connection timeout');
-    });
+    var createUDPSock = function (ipAddr, port) {
+        var dgram = require("dgram");
+        var udpSock = dgram.createSocket("udp4");
+        
+        udpSock.on("error", (err) => {
+            console.log("server error:\n${err.stack}");
+            udpSock.close();
+        });
 
-    return tcpSock;
-};
+        udpSock.on("message", (msg, rinfo) => {
+            console.log("server got: ${msg} from ${rinfo.address}:${rinfo.port}");
+        });
 
-SocketController.createUDPSock = function (ipAddr, port) {
-    var dgram = require('dgram');
-    var udpSock = dgram.createSocket('udp4');
-    var onBind = function () {
+        udpSock.on("listening", () => {
+            var address = udpSock.address();
+            console.log("server listening ${address.address}:${address.port}");
+        });
+
+
+        udpSock.bind(port);
+
+        return udpSock;
+    };
+
+    var sendUDPSock = function (udpSock, data) {
 
     };
 
-    udpSock.bind(port, ipAddr, onBind);
-
-    return udpSock;
+    return {
+        createTCPSock : createTCPSock,
+        createUDPSock : createUDPSock,
+        sendUDPSock : sendUDPSock
+    };
 };
 
-SocketController.prototype.sendUDPSock = function (udpSock, data) {
+SocketController.prototype.constructor = SocketController;
 
-};
+exports.SocketController = SocketController;
