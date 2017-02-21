@@ -5,11 +5,9 @@ var SocketController = function () {
      * @param server port number
      */
     var createTCPSock = function (host, port) {
-        console.log("begin");
         var net = require("net");
-        console.log(net);
         var tcpSock = net.connect({host: host, port : port});
-        console.log(tcpSock);
+        
         tcpSock.on("connect", function () {
             console.log("TCP connect!");
         });
@@ -21,6 +19,7 @@ var SocketController = function () {
             }
             else {
                 var udpSock = createUDPSock(host, chunk);
+                sendUDPSock(udpSock, "UDP socket test", chunk, host);
             }
         });
 
@@ -63,8 +62,10 @@ var SocketController = function () {
         return udpSock;
     };
 
-    var sendUDPSock = function (udpSock, data) {
-
+    var sendUDPSock = function (udpSock, data, port, ipAddr) {
+        udpSock.send(data, port, ipAddr, (err) => {
+            udpSock.close();
+        });
     };
 
     return {

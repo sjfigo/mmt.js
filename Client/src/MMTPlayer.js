@@ -1,7 +1,7 @@
 var MMTPlayer = function (video, controller) {
     var SocketController = require("./transport/SocketController.js").SocketController;
 	var init = function () {
-        callSetup("172.16.39.167", 10000);
+        callSetup("172.16.39.165", 10000);
     };
 
 	var callSetup = function (host, port) {
