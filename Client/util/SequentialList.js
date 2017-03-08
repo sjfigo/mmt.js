@@ -46,7 +46,7 @@ class SortedList {
                 }
             }
 
-            if (i === len-1) {
+            if (i === len) {
                 this._list.push(item);
             }
             else {
@@ -95,6 +95,9 @@ class SortedList {
             }
         }
         return ret;
+    }
+    get length () {
+        return this._list.length;
     }
 }
 
@@ -156,15 +159,41 @@ class SequentialList {
 
     getNextSeqItem () {
         let item = this._seqList[0];
-        if (this._lastItem === null || (this._lastItem !== null && item.seq === this._lastItem.seq + 1)) {
+        if (item !== null && item !== undefined) {
+            if (this._lastItem === null || (this._lastItem !== null && item.seq === this._lastItem.seq + 1)) {
+                this._lastItem = item;
+                this._seqList.splice(0, 1);
+                return item;
+            }
+            else {
+                console.log("putItem error");
+                return null;
+            }
+        }
+        else if (this._seqList.length === 0 && this._sortedList.length > 0){
+            // drop this seq num
+            let i = 0;
+            let lastItem = null;
+            let len = this._sortedList.length;
+            for(i=0; i<len; i++) {
+                item = this._sortedList.pullItem();
+                if (lastItem !== null && lastItem.seq + 1 !== item.seq){
+                    break;
+                }
+                this._seqList.push(item);
+                lastItem = item;
+                this._sortedList.removeItem(item);
+            }
+            item = this._seqList[0];
             this._lastItem = item;
             this._seqList.splice(0, 1);
+
             return item;
         }
         else {
+            console.log("no item");
             return null;
         }
-        
     }
     putItem (item) {
         let len = this._seqList.length;
@@ -193,17 +222,23 @@ class SequentialList {
             }
         }
 
-        /*let i = 0;
+        let i = 0;
         let str = "";
         len = this._seqList.length;
         for (i = 0; i < len; i++) {
             str += this._seqList[i].seq + " - ";
         }
-        console.log("Sequential putItems: " + str);*/
+        console.log("Sequential putItems: " + str);
+        str = "";
+        len = this._sortedList.length;
+        for (i=0; i<len; i++) {
+            str += this._sortedList.pullItem(i).seq + " - ";
+        }
+        console.log("SortedList putItems: " + str);
     }
 }
 
-/*
+
 var sequentialListTest = function () {
     let arr = [];
     let i = 0;
@@ -230,6 +265,14 @@ var sequentialListTest = function () {
         console.log("swap: " + n + ", " + m);
     }
 
+    for(i=0; i<len/10; i++) {
+        let drop = getRndInteger(0, arr.length-1);
+        console.log("drop: " + drop + ", seq: " + arr[drop].seq + ", data: " + arr[drop].data);
+        arr.splice(drop, 1);
+    }
+    
+    len = arr.length;
+
     str = "";
     for (i=0; i<len; i++) {
         str += arr[i].seq + "-";
@@ -249,4 +292,3 @@ var sequentialListTest = function () {
 };
 
 sequentialListTest();
-*/
