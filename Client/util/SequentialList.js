@@ -16,6 +16,7 @@ class Item {
         return this._seq;
     }
 }
+exports.Item = Item;
 
 /*
 var itemTest = function () {
@@ -100,8 +101,9 @@ class SortedList {
         return this._list.length;
     }
 }
+exports.SortedList =  SortedList;
 
-
+/*
 var seed = 1;
 var getRndInteger = function (min, max) {
     var x = Math.sin(seed++);
@@ -111,7 +113,7 @@ var getRndInteger = function (min, max) {
     }
     return ret;
 };
-
+*/
 
 /*
 var sortedListTest = function () {
@@ -237,8 +239,9 @@ class SequentialList {
         console.log("SortedList putItems: " + str);
     }
 }
+exports.SequentialList = SequentialList;
 
-
+/*
 var sequentialListTest = function () {
     let arr = [];
     let i = 0;
@@ -292,3 +295,4 @@ var sequentialListTest = function () {
 };
 
 sequentialListTest();
+*/
