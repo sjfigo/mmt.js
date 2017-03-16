@@ -15,7 +15,9 @@ class UDP_Buffer {
         let packetParser = new MMTPPacketParser(packet, size);
         item.seq(packetParser.parseV0_packet_sequence_number);
         item.data(packet);
-        this._seqList.putItem(item);
+        if(!this._seqList.putItem(item)) {
+            console.log("Drop packet. seq: " + item.seq);
+        }
 
         return true;
     }

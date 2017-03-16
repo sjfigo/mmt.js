@@ -207,6 +207,9 @@ class SequentialList {
                 this._seqList.push(item);
                 lastItem = item;
             }
+            else if (lastItem.seq > item.seq) {
+                return false;
+            }
             else {
                 this._sortedList.putItem(item);
             }
@@ -237,6 +240,8 @@ class SequentialList {
             str += this._sortedList.pullItem(i).seq + " - ";
         }
         console.log("SortedList putItems: " + str);
+
+        return true;
     }
 }
 exports.SequentialList = SequentialList;
