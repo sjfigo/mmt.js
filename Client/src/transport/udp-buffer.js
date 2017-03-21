@@ -1,4 +1,4 @@
-import Item from "../../util/SequentialList.js".Item;
+import Item from "../../util/SequentialList.js";
 import SequentialList from "../../util/SequentialList.js";
 import MMTPPacketParser from "../parser/mmtp-packet-parser.js";
 

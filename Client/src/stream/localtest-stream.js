@@ -1,4 +1,4 @@
-import FileController from "../../util/file-controller.js".FileController;
+import FileController from "../../util/file-controller.js";
 //import SocketController from "../transport/socket-controller.js";
 import MSEController from "mse-controller.js";
 
