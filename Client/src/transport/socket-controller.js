@@ -1,10 +1,13 @@
-var SocketController = function () {
+class SocketController {
+    constructor () {
+
+    };
     /**
      * Create and connect to server by tcp socket
      * @param server ip address
      * @param server port number
      */
-    var createTCPSock = function (host, port) {
+    createTCPSock (host, port) {
         var net = require("net");
         var tcpSock = net.connect({host: host, port : port});
         
@@ -36,9 +39,9 @@ var SocketController = function () {
         });
 
         return tcpSock;
-    };
+    }
 
-    var createUDPSock = function (ipAddr, port) {
+    createUDPSock (ipAddr, port) {
         var dgram = require("dgram");
         var udpSock = dgram.createSocket("udp4");
         
@@ -60,21 +63,13 @@ var SocketController = function () {
         udpSock.bind(port);
 
         return udpSock;
-    };
+    }
 
-    var sendUDPSock = function (udpSock, data, port, ipAddr) {
+    sendUDPSock (udpSock, data, port, ipAddr) {
         udpSock.send(data, port, ipAddr, (err) => {
             udpSock.close();
         });
-    };
-
-    return {
-        createTCPSock : createTCPSock,
-        createUDPSock : createUDPSock,
-        sendUDPSock : sendUDPSock
-    };
-};
-
-SocketController.prototype.constructor = SocketController;
+    }
+}
 
 exports.SocketController = SocketController;

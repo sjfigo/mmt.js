@@ -1,4 +1,4 @@
-import Item from "../../util/SequentialList.js";
+import Item from "../../util/SequentialList.js".Item;
 import SequentialList from "../../util/SequentialList.js";
 import MMTPPacketParser from "../parser/mmtp-packet-parser.js";
 
@@ -22,3 +22,5 @@ class UDP_Buffer {
         return true;
     }
 }
+
+exports.UDP_Buffer = UDP_Buffer;
