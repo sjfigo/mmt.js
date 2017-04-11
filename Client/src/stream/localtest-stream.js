@@ -1,12 +1,10 @@
-import FileController from "../../util/file-controller.js";
-//import SocketController from "../transport/socket-controller.js";
-import MSEController from "mse-controller.js";
-
 class LocalTestStream {
     constructor (mpuPathList, video) {
+        var FileController = require("../../util/file-controller.js").FileController;
+        var MSEController = require("mse-controller.js").MSEController;
+
         this._mpuPathList = mpuPathList;
         this._fileController = new FileController;
-        //this._sockController = new SocketController;
         this._mseController = new MSEController;
 
         this._commonMimeCodec = "video/mp4; codecs=\"avc1.42E01E, mp4a.40.2\"";
@@ -31,14 +29,13 @@ class LocalTestStream {
         this._mseController.createSourceBuffer(mimeCodec, this.onCreate);
     }
 }
-exports.LocalTestStream = LocalTestStream;
+//exports.LocalTestStream = LocalTestStream;
 
-{
-    let video = document.querySelector("video");
-    let commonPath = "";
-    let paths = [];
-    paths[0] = commonPath + "/1.mpu";
 
-    let localTestStream = new LocalTestStream(paths, video);
-    localTestStream.test();
-}
+let video = document.querySelector("video");
+let commonPath = "";
+let paths = [];
+paths[0] = commonPath + "/1.mpu";
+
+let localTestStream = new LocalTestStream(paths, video);
+localTestStream.test();
