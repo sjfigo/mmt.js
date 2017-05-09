@@ -1,50 +1,49 @@
-  /**
-   * The application layer of the test application.
-   * @class
-   */
-  var app = function() {
-  /**
-   * The video element owned by the app.
-   *
-   * @private {HTMLVideoElement}
-   */
-  var video = null;
+var MMTPlayer = require("../src/mmt-player.js");
 
-  /**
-   * The player object owned by the app.
-   *
-   * @private {NexWebPlayer}
-   */
-  var player = null;
+/**
+ * The application layer of the test application.
+ * @class
+ */
+var app = function() {};
+/**
+ * The video element owned by the app.
+ *
+ * @private {HTMLVideoElement}
+ */
+app.video = null;
 
-  /**
-   * The content url (mpd or m3u8)
-   *
-   * @private {http url string}
-   */
-  var contentUrl = "http://10.10.15.27:8000/dash264/TestCases/1a/netflix/exMPD_BIP_TC1.mpd";
+/**
+ * The player object owned by the app.
+ *
+ * @private {NexWebPlayer}
+ */
+app.player = null;
 
-  /**
-   * Initializes the application.
-   */
-  var init = function() {
-    var playerControls = null;
-    var MMTPlayer = require("../src/MMTPlayer.js").MMTPlayer;
-    video = null;
-        /** @type {!HTMLVideoElement} */ //(document.getElementById("video"));
+/**
+ * The content url (mpd or m3u8)
+ *
+ * @private {http url string}
+ */
+app.contentUrl = "http://10.10.15.27:8000/dash264/TestCases/1a/netflix/exMPD_BIP_TC1.mpd";
 
-    player = new MMTPlayer(video, playerControls, contentUrl);
-    player.init();
-    console.log(player);
-    
-  //  playerControls.init(app.video_);  
-  };
 
-  return {
-    init : init
-  };
+/**
+ * Initializes the application.
+ */
+app.init = function() {
+  var playerControls = null;
+  
+  app.video = 
+      /** @type {!HTMLVideoElement} */ (document.getElementById("videoTag"));
+
+  app.player = new MMTPlayer(app.video, playerControls/*, contentUrl*/);
+  
+//  playerControls.init(app.video_);  
 };
 
-var webApp = new app();
-webApp.init();
-
+if (document.readyState == "complete" ||
+    document.readyState == "interactive") {
+  app.init();
+} else {
+  document.addEventListener("DOMContentLoaded", app.init);
+}

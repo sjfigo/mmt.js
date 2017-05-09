@@ -1,6 +1,7 @@
-let http = require("http");
-let fs = require("fs");
-let server = http.createServer(function (req, res) {
+let Http = require("http");
+let Fs = require("fs");
+
+let server = Http.createServer(function (req, res) {
     let path = "/Users/daehee/Git/MMT-WebPlayer/Client" + req.url;
     
     if(req.url === "/" || req.url ==="/favicon.ico") {
@@ -8,7 +9,7 @@ let server = http.createServer(function (req, res) {
     }
     console.log("path: " + path);
     console.log("url: " + req.url);
-    let stat = fs.statSync(path);
+    let stat = Fs.statSync(path);
     console.log("stat: " + stat);
     let total = stat.size;
     console.log("total: " + total);
@@ -24,13 +25,13 @@ let server = http.createServer(function (req, res) {
         let chunksize = (end-start)+1;
         console.log("RANGE: " + start + " - " + end + " = " + chunksize);
 
-        let file = fs.createReadStream(path, {start: start, end: end});
+        let file = Fs.createReadStream(path, {start: start, end: end});
         res.writeHead(206, { "Content-Range": "bytes " + start + "-" + end + "/" + total, "Accept-Ranges": "bytes", "Content-Length": chunksize, "Content-Type": "text/html" });
         file.pipe(res);
     } else {
         console.log("ALL: " + total);
         res.writeHead(200, { "Content-Length": total, "Content-Type": "text/html" });
-        fs.createReadStream(path).pipe(res);
+        Fs.createReadStream(path).pipe(res);
     }
 });
-server.listen(1337, "127.0.0.1");
+server.listen(1337, "192.168.1.4");

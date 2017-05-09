@@ -1,4 +1,4 @@
-import Error from "../error.js";
+//var Error = require("../error.js").Error;
 
 class MSEController {
     constructor() {
@@ -8,29 +8,33 @@ class MSEController {
         }
     }
 
-    static addSourceBuffer (mimeCodec, onCreate) {
+    get mse () {
+        return this._mse;
+    }
+
+    addSourceBuffer (mimeCodec) {
         if (!this._mimeCodecs[mimeCodec]) {
             let sourceBuffer = this._mse.addSourceBuffer(mimeCodec);
             this._mimeCodecs[mimeCodec] = sourceBuffer;
-            onCreate.bind(this);
         }
     }
 
-    createSourceBuffer (mimeCodec, onCreate) {
-        if (this._mse) {
-            this._mse.addEventListener("sourceopen", this.addSourceBuffer.bind(this, mimeCodec, onCreate));
+    createSourceBuffer (mimeCodec) {
+        if (this._mse && MediaSource.isTypeSupported(mimeCodec)) {
+            this._mse.addEventListener("sourceopen", this.addSourceBuffer.bind(this, mimeCodec));
         }
     }
     
     appendSegment (mimeCodec, segment) {
         if (this._mse) {
             if (!this._mimeCodecs[mimeCodec]) {
-                return Error.INVALID_PARAM;
+                return 0;//Error.INVALID_PARAM;
             }
             let sourceBuffer = this._mimeCodecs[mimeCodec];
-            sourceBuffer.appendBuffer(segment);
+            let arrayBuffer = new ArrayBuffer(segment);
+            sourceBuffer.appendBuffer(arrayBuffer);
         }
     }
 }
 
-exports.MSEController = MSEController;
+module.exports = MSEController;

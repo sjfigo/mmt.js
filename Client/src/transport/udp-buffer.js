@@ -1,12 +1,17 @@
-import Item from "../../util/SequentialList.js";
-import SequentialList from "../../util/SequentialList.js";
-import MMTPPacketParser from "../parser/mmtp-packet-parser.js";
+//import Item from "../../util/SequentialList.js";
+//import SequentialList from "../../util/SequentialList.js";
+//import MMTPPacketParser from "../parser/mmtp-packet-parser.js";
+
+var Item = require("../../util/SequentialList.js").Item;
+var SequentialList = require("../../util/SequentialList.js").SequentialList;
+var MMTPPacketParser = require("../parser/mmtp-packet-parser.js").MMTPPacketParser;
 
 class UDP_Buffer {
     constructor () {
+        
         this._seqList = new SequentialList();
     }
-
+    
     getFirstPacket () {
         return this._seqList.getNextSeqItem();
     }

@@ -1,15 +1,16 @@
 class SocketController {
     constructor () {
 
-    };
+    }
+    
     /**
      * Create and connect to server by tcp socket
      * @param server ip address
      * @param server port number
      */
     createTCPSock (host, port) {
-        var net = require("net");
-        var tcpSock = net.connect({host: host, port : port});
+        var Net = require("net");
+        var tcpSock = Net.connect({host: host, port : port});
         
         tcpSock.on("connect", function () {
             console.log("TCP connect!");

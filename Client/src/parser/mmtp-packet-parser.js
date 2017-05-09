@@ -1,4 +1,4 @@
-import Error from "../errors.js";
+var Error = require ("../errors.js").Error;
 
 class MMTPPacketParser {
     constructor (packet, size) {

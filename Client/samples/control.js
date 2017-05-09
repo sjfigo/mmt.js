@@ -1,4 +1,4 @@
-import MMTPlayer from "../src/MMTPlayer.js";
+var MMTPlayer = require("../src/mmt-player.js");
 
 var playerControls = function() {};
 

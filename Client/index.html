@@ -1,13 +1,43 @@
 <!DOCTYPE html>
-<html>
+<html ng-app='MMTPlayer' lang='en'>
     <head>
-        <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
-        <script src="samples/app.js"> </script>
-        <script src="samples/control.js"> </script>
-        <script src="src/stream/localtest-stream.js"> </script>
+        <script src='http://code.jquery.com/jquery-1.11.0.min.js'></script>
+       
+		<link rel='stylesheet' href='index.css'>
+		<link rel='stylesheet' href='controls.css'>
+        
+        <script src='samples/browserify_control.js'> </script>
+        <script src='samples/browserify_app.js'> </script>
     </head>
-<body>
-    <video width="320" height="240" autoplay>
-    </video>
-</body>
+    <body>
+        <div id='videoContainer'>
+			<video id='videoTag'
+				autoplay>
+			</video>
+			
+			<div id='bufferingSpinner'>
+			</div>
+			
+			<div id='videoControlsEnclosure'>
+				<div id='videoControls'>
+					<input id='playButton' type='button'>
+					<input id='pauseButton' type='button'>
+					<input id='seekBar' type='range' step='any' min='0' max='1'>
+					<input id='rewindButton' type='button'>
+					
+					<div id='currentTime'>0:00
+					</div>
+					
+					<input id='fastForwardButton' type='button'>
+					<input id='muteButton' type='button'>
+					<input id='unmuteButton' type='button'>
+					<input id='volumeBar' type='range' step='any' min='0' max='1'>
+					<input id='castButton' type='button'>
+					<input id='castConnectedButton' type='button'>
+					<input id='propertyButton' type='button'>
+					<input id='fullscreenButton' type='button'>
+				</div>
+			</div>
+    	</div>
+    </body>
 </html>

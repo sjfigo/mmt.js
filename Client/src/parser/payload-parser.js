@@ -93,3 +93,5 @@ class PayloadParser {
         return this.getBits(this._payload, this._size, this._DU_payload_pos, this._DU_payload_size);
     }
 }
+
+exports.PayloadParser = PayloadParser;
