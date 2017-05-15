@@ -1,11 +1,11 @@
-var MPU = require("./MPU/mmt-structure/mpu.js");
-var MPUFragment = require("./MPU/mmt-structure/mpu-fragment.js");
-var AssetID = require("./MPU/mmt-structure/asset-id.js");
+var MPU = require("./mmt-structure/mpu.js");
+var MPUFragment = require("./mmt-structure/mpu-fragment.js");
+var AssetID = require("./mmt-structure/asset-id.js");
 
 class MPURebuilder {
     constructor (cbPostMPU) {
         this.mpu = new MPU();
-        this.mpuFrag = null;
+        this.mpuFrags = [];
         this.composedFragNum = 0;
         this.postMPU = cbPostMPU;
     }
@@ -15,11 +15,11 @@ class MPURebuilder {
      * @param {* Buffer} data
      */
     set mpuFrag (data) {
-        let mpuFrag = null;
         let mpuFragData = new Buffer(data);
         let size = mpuFragData.length;
         let type = this.getMPUFragType (mpuFragData, size);
-        mpuFrag = new MPUFragment(type, mpuFragData, size);
+        let mpuFragment = new MPUFragment(type, mpuFragData, size);
+        this.mpuFrags.push(mpuFragment);
 
         if (this.composeMPUFrags()) {
             this.postMPU(this.mpu);
@@ -513,12 +513,16 @@ class MPURebuilder {
 }
 module.exports = MPURebuilder;
 
-var postRebuild = function (mpuData) {
-
+var postRebuild = function (mpu) {
+    fileController.writeBinFile(path, mpu.data);
 };
-var mpuRebuilder = new MPURebuilder(postRebuild);
+
 var FileController = require("../Client/util/file-controller.js");
 var fileController = new FileController();
-var mpu_path = "/Users/daehee/Git/MMT-WebPlayer/mpu/MPU/000.mp4";
+var mpu_path = "/Users/daehee/Git/MMT-WebPlayer/mpu-manager/mpus/000.mp4";
 var mpuData = fileController.readBinFile(mpu_path);
+if (mpuData === null) {
+    console.log("1 - NULL");
+}
+var mpuRebuilder = new MPURebuilder();
 mpuRebuilder.mpuFrag = mpuData;

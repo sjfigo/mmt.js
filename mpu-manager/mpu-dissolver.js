@@ -1,6 +1,6 @@
-var MPU = require("./MPU/mmt-structure/mpu.js");
-var MPUFragment = require("./MPU/mmt-structure/mpu-fragment.js");
-var AssetID = require("./MPU/mmt-structure/asset-id.js");
+var MPU = require("./mmt-structure/mpu.js");
+var MPUFragment = require("./mmt-structure/mpu-fragment.js");
+var AssetID = require("./mmt-structure/asset-id.js");
 
 class MPUDissolver {
     /**
@@ -21,6 +21,9 @@ class MPUDissolver {
 
     set mpuData (data) {
         let mpuData = new Buffer(data);
+        if (this.mpu === undefined || this.mpu === null) {
+            this.mpu = new MPU();
+        }
         this.mpu.data = mpuData;
         this.mpu.dataSize = mpuData.length;
     }
@@ -554,7 +557,11 @@ module.exports = MPUDissolver;
 
 var FileController = require("../Client/util/file-controller.js");
 var fileController = new FileController();
-var mpu_path = "/Users/daehee/Git/MMT-WebPlayer/mpu/MPU/000.mp4";
+var mpu_path = "/Users/daehee/Git/MMT-WebPlayer/mpu-manager/mpus/000.mp4";
 var mpuData = fileController.readBinFile(mpu_path);
-var dissolver = new MPUDissolver (mpuData, mpuData.length);
+if (mpuData === null) {
+    console.log("NULL");
+}
+var dissolver = new MPUDissolver ();//mpuData, mpuData.length);
+dissolver.mpuData = mpuData;
 var mpuFrags = dissolver.mpuFragments;
