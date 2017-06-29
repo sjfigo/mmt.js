@@ -1,7 +1,7 @@
 class MPUFragment {
     constructor (type, data, size) {
         this.mpufType = null;
-        this.mpufData = null;
+        this.mpufData =  Buffer.from("");
         this.mpufSize = null;
         this.mpufPosition = null;
         this.mpufTypeInfo = null; // MPU Metadata Info, MOOF Metadata Info or MFU Info
@@ -9,7 +9,7 @@ class MPUFragment {
             this.mpufType = type;
         }
         if (data !== undefined) {
-            this.mpufData = data;
+            this.mpufData = Buffer.from(data);
         }
         if (size !== undefined) {
             this.mpufSize = size;
@@ -20,7 +20,7 @@ class MPUFragment {
         return this.mpufType;
     }
     set type (type) {
-        return this.mpufType = type;
+        this.mpufType = type;
     }
     get typeInfo () {
         return this.typeInfo;
@@ -35,7 +35,7 @@ class MPUFragment {
         this.mpufData = data;
     }
     get size () {
-        return size;
+        return this.mpufSize;
     }
     set size (size) {
         this.mpufSize = size;

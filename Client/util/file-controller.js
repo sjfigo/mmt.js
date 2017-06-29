@@ -17,6 +17,12 @@ class FileController {
      * @param {*<string> | <Buffer> | <Uint8Array>} data
      */
     writeBinFile (path, data) {
+        this.Fs.open(path, "wx", (err, fd) => {
+            if(err) {
+                console.log(err.code);
+                return false;
+            }
+        });
         this.Fs.writeFileSync(path, data);
         return true;
     }

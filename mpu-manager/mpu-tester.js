@@ -2,6 +2,7 @@ var FileController = require("../Client/util/file-controller.js");
 var MPUDissolver = require("./mpu-dissolver.js");
 var MPURebuilder = require("./mpu-rebuilder.js");
 var MPU = require("./mmt-structure/mpu.js");
+var that = null;
 
 class MPUTester {
     constructor () {
@@ -16,6 +17,8 @@ class MPUTester {
         this.fileController = new FileController ();
         this.mpuDissolver = null;
         this.mpuRebuilder = null;
+
+        that = this;
     }
 
     set path (path) {
@@ -24,7 +27,7 @@ class MPUTester {
 
     readMPU () {
         let data = this.fileController.readBinFile(this.mpu_path);
-        this.mpuData = new Buffer(data);
+        this.mpuData = data;
     }
 
     dissolve () {
@@ -34,28 +37,29 @@ class MPUTester {
         console.log("dissolved.");
     }
 
+    printMPU (mpu) {
+        let path = that.outMPUPath + that.outMPUFsCnt + ".mp4";
+        console.log("Out: " + path);
+        that.fileController.writeBinFile(path, mpu.data);
+    }
+
     rebuild () {
         let i = 0;
-
         this.mpuRebuilder = new MPURebuilder (this.printMPU);
 
+        console.log("this.mpuFrags.length: " + this.mpuFrags.length);
         for (i=0; i<this.mpuFrags.length; i++) {
-            this.mpuRebuilder.mpuFrag = mpuFrags[i];
+            console.log("this.mpuFrags[i].data.length: "+this.mpuFrags[i].data.length);
+            this.mpuRebuilder.mpuFrag = this.mpuFrags[i];
         }
 
         console.log("rebuilded.");
-    }
-
-    printMPU (mpu) {
-        let path = this.outPath + this.outCnt + ".mp4";
-        console.log("Out: " + path);
-        this.fileController.writeBinFile(path, mpu.data);
     }
 }
 module.exports = MPUTester;
 
 var mpuTester = new MPUTester();
-mpuTester.path = mpuTester.inMPUPath + "000.mp4";
+mpuTester.path = mpuTester.inMPUPath + "test1_The Dark Knight Rise_1080p__MPU_000.mp4";
 mpuTester.readMPU();
 mpuTester.dissolve();
 mpuTester.rebuild();

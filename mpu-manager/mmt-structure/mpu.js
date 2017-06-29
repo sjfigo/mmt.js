@@ -1,19 +1,27 @@
 class MPU {
     constructor (data, size) {
-        this.mpuData = data;
+        if (data !== undefined) {
+            this.mpuData = data;
+        }
+        else {
+            this.mpuData = Buffer.from("");
+        }
         this.descriptor = 0;
-        this.mpuDataSize = size;
+        if (size !== undefined) {
+            this.mpuDataSize = size;
+        }
+        else {
+            this.mpuDataSize = 0;
+        }
         this.mpu_num = null;
         this.mpuMetaDataFlag = false;
         this.assetType = null;
         this.moovOffset = null;
         this.videoTrakId = null;
         this.hintTrakId = null;
-        this.videoSampleCount = null;
-        this.moovOffset = null;
+        this.videoSampleCount = 0;
         this.videoSampleSizeOffset = null;
         this.moofOffset = null;
-        this.videoSampleSizeOffset = null;
         this.videoSampleSizeSeekNum = null;
         this.videoSampleOffset = null;
         this.hintSampleOffset = null;
@@ -45,8 +53,8 @@ class MPU {
     get asset_type () {
         return this.assetType;
     }
-    set asset_type (asset_type) {
-        this.assetType = asset_type;
+    set asset_type (type) {
+        this.assetType = type;
     }
     get moov_offset () {
         return this.moovOffset;
@@ -91,7 +99,7 @@ class MPU {
         this.videoSampleSizeSeekNum = video_sample_size_seek_num;
     }
     get video_sample_offset () {
-        return video_sample_offset;
+        return this.videoSampleOffset;
     }
     set video_sample_offset (video_sample_offset) {
         this.videoSampleOffset = video_sample_offset;

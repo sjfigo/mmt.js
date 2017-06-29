@@ -1,6 +1,8 @@
 var MPU = require("./mmt-structure/mpu.js");
 var MPUFragment = require("./mmt-structure/mpu-fragment.js");
 var AssetID = require("./mmt-structure/asset-id.js");
+var MPU_Fragment_Type = require("./mmt-structure/mpu-fragment-type.js");
+var AssetType = require("./mmt-structure/asset-type.js");
 
 class MPUDissolver {
     /**
@@ -9,12 +11,17 @@ class MPUDissolver {
      * @param {*integer} size 
      */
     constructor (mpuData, size) {
+        //console.log("MPUDissolver - constructor: mpuData - " + mpuData);
+        //console.log("MPUDissolver - constructor: size - " + size);
         if (mpuData === null || mpuData === undefined || size == null || size === undefined) {
             return null;
         }
         this.mpu = new MPU(new Buffer(mpuData), size);
+        //console.log(this.mpu.mpuData.length);
         this.mpuFrags = null;
         this.assetId = null;
+        this.mpu.asset_type = AssetType.timed;
+        this.mpu.video_sample_size_offset = 0;
 
         this.parseAssetInfo();
     }
@@ -26,6 +33,7 @@ class MPUDissolver {
         }
         this.mpu.data = mpuData;
         this.mpu.dataSize = mpuData.length;
+        //console.log("set mpuData success. " + data);
     }
 
     get mpuFragments () {
@@ -45,39 +53,37 @@ class MPUDissolver {
     }
 
     parseAssetInfo () {
-        let mpu = this.mpu;
-        let mpuDescriptor = 0;
         let mpuBeginDsc = 0;
         let boxName = null;
         let boxSize = 0;
         let mmpu = Buffer.from("mmpu");
         let mmpuLen = mmpu.length;
 
-        while(mpuDescriptor < mpu.size) {
-            mpuBeginDsc = mpuDescriptor;
-            boxSize = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-            mpuDescriptor += 4;
-            boxName = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-            mpuDescriptor += 4;
+        while(this.mpu.descriptor < this.mpu.size) {
+            mpuBeginDsc = this.mpu.descriptor;
+            boxSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+            this.mpu.descriptor += 4;
+            boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+            this.mpu.descriptor += 4;
 
-            if (boxName.compare(mmpu, mmpuLen) === 0) {
+            if (boxName.compare(mmpu) === 0) {
                 let assetID = new AssetID();
                 
-                mpuDescriptor += 9;
+                this.mpu.descriptor += 9;
                 
-                assetID.scheme = getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                mpuDescriptor += 4;
+                assetID.scheme = getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                this.mpu.descriptor += 4;
                 
-                assetID.length = getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                mpuDescriptor += 4;
+                assetID.length = getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                this.mpu.descriptor += 4;
 
-                assetID.value = Buffer.from(mpu.data, mpuDescriptor, assetID.length);
-                mpuDescriptor += assetID.length;
+                assetID.value = Buffer.from(this.mpu.data, this.mpu.descriptor, assetID.length);
+                this.mpu.descriptor += assetID.length;
 
                 this.assetId = assetID;
                 break;
             }
-            mpuDescriptor = mpuBeginDsc + boxSize;
+            this.mpu.descriptor = mpuBeginDsc + boxSize;
         }
 
         if (this.assetId === null) {
@@ -95,8 +101,14 @@ class MPUDissolver {
      */
     get4ByteBuffer (buf, offset) {
         const len = 4;
-        let resultBuffer = Buffer.allocUnsafe(4).fill(0x00);
-        buf.copy(resultBuffer, 0, offset, len);
+        let resultBuffer = Buffer.allocUnsafe(len).fill(0x00);
+        let ret = buf.copy(resultBuffer, 0, offset, offset + len);
+        /*console.log("get4ByteBuffer: ");
+        console.log("ret: " + ret);
+        console.log("offset: " + offset);
+        console.log(resultBuffer.toString());
+        console.log(resultBuffer.length);
+        console.log("get4ByteBuffer - buf.legnth: "+buf.length+", offset: "+offset);*/
         return resultBuffer;
     }
 
@@ -106,14 +118,40 @@ class MPUDissolver {
      * @param {* Offset from Buffer[0]} offset 
      */
     getIntTo4ByteBuffer (buf, offset) {
-        return (buf.readUInt8(offset + 0) & 0xFF) << 24 | (buf.readUInt8(offset + 1) & 0xFF) << 16 | (buf.readUInt8(offset + 2) & 0xFF) << 8 | (buf.readUInt8(offset + 3) & 0xFF);
+        let result = (buf.readUInt8(offset + 0) & 0xFF) << 24 | (buf.readUInt8(offset + 1) & 0xFF) << 16 | (buf.readUInt8(offset + 2) & 0xFF) << 8 | (buf.readUInt8(offset + 3) & 0xFF);
+        /*console.log("getIntTo4ByteBuffer: ");
+        console.log(result);
+        console.log("getIntTo4ByteBuffer - buf.legnth: "+buf.length+", offset: "+offset);*/
+        return result;
+    }
+
+    bufferCopy (target, targetPosition, data, dataPosition, dataLength) {
+        let targetLength = target.length;
+        let size = targetPosition + dataLength;
+        let resultBuffer = null;
+
+        console.log("bufferCopy - data.length: "+data.length+", dataPosition: "+dataPosition);
+        if (targetLength > size) {
+            resultBuffer = Buffer.allocUnsafe(targetLength).fill(0x00);
+            target.copy(resultBuffer, 0, 0, targetLength);
+            //console.log("1-1: " + resultBuffer.toString());
+            data.copy(resultBuffer, targetPosition, dataPosition, dataPosition + dataLength);
+            //console.log("1-2: " + resultBuffer.toString());
+            return resultBuffer;
+        }
+        else {
+            let resultSize = size;
+            resultBuffer = Buffer.allocUnsafe(resultSize).fill(0x00);
+            target.copy(resultBuffer, 0, 0, targetLength);
+            //console.log("2-1: " + resultBuffer.toString());
+            data.copy(resultBuffer, targetPosition, dataPosition, dataPosition + dataLength);
+            //console.log("2-2: " + resultBuffer.toString());
+        
+            return resultBuffer;
+        }
     }
 
     getMPUFragments () {
-        let mpu = this.mpu;
-        let mpuDataSize = this.mpu.dataSize;
-        let mpuDescriptor = this.mpu.descriptor;
-
         let boxSize = 0;
         let boxName = null;
 
@@ -128,23 +166,28 @@ class MPUDissolver {
         let mpuFragCnt = 0;
         let mpuFrag = null;
 
-        while(mpuDescriptor < mpuDataSize) {
+        while(this.mpu.descriptor < this.mpu.dataSize) {
             // mmte_khu1_GetNextMPUFragment begin
-            boxSize = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-            mpuDescriptor += 4;
-            boxName = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-            mpuDescriptor += 4;
 
-            if (boxName.compare(mdat, mdatLen) === 0) {
-                mpuFrag = this.getMFU(mpu.data, mpuDescriptor);
+            //console.log("1. mpu.data.length: " + this.mpu.data.length + ", this.mpu.descriptor: " + this.mpu.descriptor);
+
+            boxSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+            boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor+4);
+            
+            if (boxName.compare(mdat) === 0) {
+                mpuFrag = this.getMFU(boxSize);
+                console.log(mpuFragCnt+". length: "+mpuFrag.size+", type: mdat");
             }
-            else if (boxName.compare(ftyp, ftypLen) === 0) {
-                mpuFrag = this.getMPUMeta(mpu.data, mpuDescriptor);
+            else if (boxName.compare(ftyp) === 0) {
+                mpuFrag = this.getMPUMeta();
+                console.log(mpuFragCnt+". length: "+mpuFrag.size+", type: ftyp");
             }
-            else if (boxName.compare(moof, moofLen) === 0) {
-                mpuFrag = this.getMovieFragMeta(mpu.data, mpuDescriptor, boxSize);
+            else if (boxName.compare(moof) === 0) {
+                mpuFrag = this.getMovieFragMeta(boxSize);
+                console.log(mpuFragCnt+". length: "+mpuFrag.size+", type: moof");
             }
             else {
+                console.log("not matched");
                 break;
             }
             // end of mmte_khu1_GetNextMPUFragment
@@ -162,15 +205,18 @@ class MPUDissolver {
 
     /**
      * mdat box parsing
-     * @param {*MPU} mpu
-     * @param {*integer} mpuDescriptor
      */ 
-    getMPUMeta (mpu, mpuDescriptor) {
+    getMPUMeta () {
         let mpuFrag = new MPUFragment();
-        let beginPos = mpuDescriptor;
+        let beginPos = this.mpu.descriptor;
 
-        let boxSize = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-        let boxName = this.get4ByteBuffer(mpu.data, mpuDescriptor + 4);
+        //console.log("2. mpu.data.length: " + this.mpu.data.length + ", this.mpu.descriptor: " + this.mpu.descriptor);
+
+        let boxSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+        let boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor+4);
+        
+        //console.log("boxNamd: " + boxName + ", boxSize: " + boxSize);
+        //console.log(this.mpu.data);
         
         let moov = Buffer.from("moov");
         let moovLen = moov.length;
@@ -181,83 +227,107 @@ class MPUDissolver {
 
         mpuFrag.type = MPU_Fragment_Type.ftyp;
 
-        while (boxName.compare(moof, moofLen) !== 0) {
-            if (boxName.compare(moov, moovLen) === 0) {
-                mpu.moov_offset = mpuDescriptor;
+        while (boxName.compare(moof) !== 0) {
+            if (boxName.compare(moov) === 0) {
+                this.mpu.moov_offset = this.mpu.descriptor;
             }
 
-            mpuDescriptor += boxSize;
+            this.mpu.descriptor += boxSize;
             mpuMetaSize += boxSize;
 
-            boxSize = (mpu.data[mpuDescriptor + 0] & 0xFF) << 24 | (mpu.data[mpuDescriptor + 1] & 0xFF) << 16 | (mpu.data[mpuDescriptor + 2] & 0xFF) << 8 | (mpu.data[mpuDescriptor + 3] & 0xFF);;
-            boxName = Buffer.from(mpu.data, iterator + boxSizeLen, boxNameLen);
+            if (this.mpu.data.legnth <= this.mpu.descriptor + 8)
+            {
+                //console.log("mpuDesciptor is over mpu length");
+                break;
+            }
+            //console.log("3. this.mpu.data.length: " + this.mpu.data.length + ", this.mpu.descriptor: " + this.mpu.descriptor);
+            boxSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+            boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor+4);
         }
 
         mpuFrag.size = mpuMetaSize;
-        mpuFrag.data = Buffer.from(mpu.data, mpuDescriptor, mpuFrag.size);
+        mpuFrag.data = this.bufferCopy(mpuFrag.data, 0, this.mpu.data, beginPos, mpuFrag.size);
+
+        //console.log("ftyp - mpuFrag.data below");
+        //console.log(mpuFrag.data);
+        //console.log(mpuFrag.data.length);
+
+        //console.log("adf" + this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor+4));
 
         return mpuFrag;
     }
 
     /**
      * ftyp box parsing
-     * @param {*MPU} mpu
-     * @param {*integer} mpuDescriptor
      */ 
-    getMovieFragMeta (mpu, mpuDescriptor, boxSize) {
+    getMovieFragMeta (boxSize) {
         let mpuFrag = new MPUFragment();
         let mdatHeaderLen = 8;
 
         mpuFrag.type = MPU_Fragment_Type.moof;
         mpuFrag.size = boxSize + mdatHeaderLen;
-        mpuFrag.data = Buffer.from(mpu.data, mpuDescriptor, mpuFrag.size);
+        mpuFrag.data = this.bufferCopy(mpuFrag.data, 0, this.mpu.data, this.mpu.descriptor, mpuFrag.size);
+
+        this.mpu.moof_offset = this.mpu.descriptor;
+        this.mpu.descriptor += boxSize;
+
+        //console.log("mpuFrag.data below");
+        //console.log(mpuFrag.data);
+
+        return mpuFrag;
     }
 
     /**
      * MFU parsing
-     * @param {*MPU} mpu
-     * @param {*integer} mpuDescriptor
      */ 
-    static getMFU (mpu, mpuDescriptor) {
+    getMFU (boxSize) {
         let mpuFrag = new MPUFragment();
 
-        let boxSize = 0;
+        let beginPos = this.mpu.descriptor;
         let hintSampleSize = 0;
         let videoSampleSize = 0;
         let mpuFragData = [];
 
-        if (mpu.video_trak_id === null && mpu.hint_trak_id === null) {
+        //console.log("getMFU - this.mpu.descriptor: "+this.mpu.descriptor);
+
+        if (this.mpu.video_trak_id === null && this.mpu.hint_trak_id === null) {
             this.getTrackID();
         }
         this.getSampleOffset();
 
-        mpu.descriptor = mpu.video_sample_size_offset;
-        videoSampleSize = this.getIntTo4ByteBuffer(mpu.data, mpu.descriptor);
+        this.mpu.descriptor = this.mpu.video_sample_size_offset;
+        videoSampleSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+        this.mpu.descriptor += 4;
         hintSampleSize = 4;
 
-        if (mpu.asset_type === AssetType.timed) {
+        if (this.mpu.asset_type === AssetType.timed) {
             hintSampleSize += 26;
         }
         else {
-            hintSampleSize == 2;
+            hintSampleSize += 2;
         }
+        console.log("getMFU - hintSampleSize: "+hintSampleSize+", videoSampleSize: "+videoSampleSize);
 
         mpuFrag.size = hintSampleSize + videoSampleSize;
-        mpuFragData[0] = Buffer.from(mpu.data, mpu.hint_sample_offset, hintSampleSize);
-        mpuFragData[1] = Buffer.from(mpu.data, mpu.video_sample_offset, videoSampleSize);
+        mpuFragData[0] = Buffer.from(this.mpu.data, this.mpu.hint_sample_offset, hintSampleSize);
+        mpuFragData[1] = Buffer.from(this.mpu.data, this.mpu.video_sample_offset, videoSampleSize);
         mpuFrag.data = Buffer.concat(mpuFragData, mpuFrag.size);
         mpuFrag.type = MPU_Fragment_Type.mdat;
 
-        mpu.video_sample_count --;
-        if (mpu.video_sample_count === 0) {
-            mpu.descriptor += boxSize;
+        //console.log("video_sample_count: " + this.mpu.video_sample_count);
+        this.mpu.video_sample_count --;
+        if (this.mpu.video_sample_count === 0) {
+            this.mpu.descriptor = beginPos + boxSize;
+            //console.log("AAAAAAAA: "+this.mpu.descriptor+" beginPos: "+beginPos);
         }
+        else {
+            this.mpu.descriptor = beginPos;
+        }
+
+        return mpuFrag;
     }
 
     getTrackID () {
-        let mpu = this.mpu;
-        let mpuDescriptor = 0;
-
         let moovSize = 0;
 
         let boxSize = 0;
@@ -278,116 +348,116 @@ class MPUDissolver {
         let hint = Buffer.from("hint");
         let hintLen = hint.length;
 
-        mpuDescriptor = mpu.moov_offset;
-        moovSize = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor) - 8;
-        mpuDescriptor = mpu.moov_offset + 8;
+        //console.log("getTrackID - this.mpu.descriptor: "+this.mpu.descriptor);
+
+        this.mpu.descriptor = this.mpu.moov_offset;
+        moovSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor) - 8;
+        this.mpu.descriptor = this.mpu.moov_offset + 8;
 
         while (moovSize > 0) {
-            boxSize = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-            mpuDescriptor += 4;
+            boxSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+            this.mpu.descriptor += 4;
             
-            boxName = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-            mpuDescriptor += 4;
-            if (boxName.compare(trak, trakLen) === 0) {
+            boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+            this.mpu.descriptor += 4;
+            if (boxName.compare(trak) === 0) {
                 let trakid = null;
                 let trakSize = boxSize - 8;
-                let trakSubBoxOffset = mpuDescriptor;
+                let trakSubBoxOffset = this.mpu.descriptor;
 
                 while (trakSize > 0) {
-                    let tsbSize = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                    mpuDescriptor += 4;
-                    boxName = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-                    mpuDescriptor += 4;
+                    let tsbSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                    this.mpu.descriptor += 4;
+                    boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                    this.mpu.descriptor += 4;
 
-                    if (boxName.compare(tkhd, tkhdLen) === 0) {
+                    if (boxName.compare(tkhd) === 0) {
                         let version = 0;
-                        let strVer = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-                        mpuDescriptor += 4;
-                        version = strVer[0] & 0xFF;
+                        //let strVer = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                        
+                        version = this.mpu.data.readUInt8(this.mpu.descriptor) & 0xFF;
+                        this.mpu.descriptor += 4;
+                        //console.log("version: "+version);
                         if (version === 1) {
-                            descriptor += 16;
+                            this.mpu.descriptor += 16;
                         }
                         else {
-                            descriptor += 8;
+                            this.mpu.descriptor += 8;
                         }
-                        trakid = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
+                        trakid = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
 
                         break;
                     }
                     else {
-                        mpuDescriptor += (tsbSize - 8)
+                        this.mpu.descriptor += (tsbSize - 8)
                     }
                     trakSize -= tsbSize;
                 }
 
                 trakSize = boxSize - 8;
-                mpuDescriptor = trakSubBoxOffset;
+                this.mpu.descriptor = trakSubBoxOffset;
 
                 while (trakSize > 0) {
-                    let tsbSize = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                    mpuDescriptor += 4;
-                    boxName = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-                    mpuDescriptor += 4;
+                    let tsbSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                    this.mpu.descriptor += 4;
+                    boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                    this.mpu.descriptor += 4;
 
-                    if (boxName.compare(mdia, mdiaLen) === 0) {
+                    if (boxName.compare(mdia) === 0) {
                         let mdiaSize = tsbSize - 8;
 
                         while (mdiaSize > 0) {
-                            let msbSize = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                            mpuDescriptor += 4;
+                            let msbSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                            this.mpu.descriptor += 4;
                             
-                            boxName = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-                            mpuDescriptor += 4;
-                            if (boxName.compare(mdhd, mdhdLen) === 0) {
-                                let mdhdOffset = mpuDescriptor;
-                                let temp = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-                                mpuDescriptor += 4;
-                                if (temp.compare(0x01, 1) === 0) {
-                                    mpuDescriptor += 16;
+                            boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                            this.mpu.descriptor += 4;
+                            if (boxName.compare(mdhd) === 0) {
+                                let mdhdOffset = this.mpu.descriptor;
+                                let temp = this.mpu.data.readUInt8(this.mpu.descriptor) & 0xFF;
+                                this.mpu.descriptor += 4;
+                                if (temp === 1) {
+                                    this.mpu.descriptor += 16;
                                 }
                                 else {
-                                    mpuDescriptor += 8;
+                                    this.mpu.descriptor += 8;
                                 }
-
-                                let timescale = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                                mpuDescriptor += 4;
-                                
-                                mpuDescriptor = mdhdOffset;
+                                this.mpu.timescale = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);                                
+                                this.mpu.descriptor = mdhdOffset;
                             }
-                            else if (boxName.compare(hdlr, hdlrLen) === 0) {
-                                mpuDescriptor += 8;
-                                boxName = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-                                if (boxName.compare(vide, videLen) === 0) {
-                                    mpu.video_trak_id = trakid;
+                            else if (boxName.compare(hdlr) === 0) {
+                                this.mpu.descriptor += 8;
+                                boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                                this.mpu.descriptor += 4;
+                                if (boxName.compare(vide) === 0) {
+                                    this.mpu.video_trak_id = trakid;
+                                    //console.log("this.mpu.video_trak_id:" + this.mpu.video_trak_id);
                                 }
-                                else if (boxName.compare(hint, hintLen) === 0) {
-                                    mpu.hint_trak_id = trakid;
+                                else if (boxName.compare(hint) === 0) {
+                                    this.mpu.hint_trak_id = trakid;
                                 }
                                 break;
                             }
 
-                            mpuDescriptor -= (msbSize - 8);
+                            this.mpu.descriptor += (msbSize - 8);
                             mdiaSize -= msbSize;
                         }
 
                         break;
                     }
                     else {
-                        mpuDescriptor -= (tsbSize - 8);
+                        this.mpu.descriptor += (tsbSize - 8);
                     }
                     trakSize -= tsbSize;
                 }
-                mpuDescriptor = trakSubBoxOffset;
+                this.mpu.descriptor = trakSubBoxOffset;
             }
-            mpuDescriptor += (boxSize - 8);
+            this.mpu.descriptor += (boxSize - 8);
             moovSize -= boxSize;
         }
     }
 
     getSampleOffset () {
-        let mpu = this.mpu;
-        let mpuDescriptor = 0;
-
         let boxName = null;
         let traf = Buffer.from("traf");
         let trafLen = 4;
@@ -397,17 +467,21 @@ class MPUDissolver {
         let trunLen = 4;
         let tfdt = Buffer.from("tfdt");
         let tfdtLen = 4;
+
+        //console.log("getSampleOffset - this.mpu.descriptor: "+this.mpu.descriptor);
         
-        if (mpu.video_sample_count === 0) {
+        if (this.mpu.video_sample_count === 0) {
             let moofBoxSize = 0;
-            mpuDescriptor = mpu.moof_offset;
-            moofBoxSize = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor) - 8;
-            mpuDescriptor += 8;
+            this.mpu.descriptor = this.mpu.moof_offset;
+            moofBoxSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor) - 8;
+            this.mpu.descriptor += 8;
 
             while (moofBoxSize > 0) {
-                let msbSize = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                boxName = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-                if (boxName.compare(traf, trafLen) === 0) {
+                let msbSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                this.mpu.descriptor += 4;
+                boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                this.mpu.descriptor += 4;
+                if (boxName.compare(traf) === 0) {
                     let trafSize = 0;
                     let tsbOffset = 0;
                     let tSize = 0;
@@ -417,92 +491,92 @@ class MPUDissolver {
                     let baseDataOffset = 0;
 
                     trafSize = msbSize;
-                    tsbOffset = mpuDescriptor;
+                    tsbOffset = this.mpu.descriptor;
                     tSize = trafSize - 8;
 
                     while (tSize > 0) {
-                        let tsbSize = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                        mpuDescriptor += 4;
-                        boxName = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-                        mpuDescriptor += 4;
+                        let tsbSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                        this.mpu.descriptor += 4;
+                        boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                        this.mpu.descriptor += 4;
 
-                        if (boxName.compare(tfhd, tfhdLen) === 0) {
-                            let tfhdOffset = mpuDescriptor;
-                            let temp = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-                            mpuDescriptor += 4;
+                        if (boxName.compare(tfhd) === 0) {
+                            let tfhdOffset = this.mpu.descriptor;
+                            let temp = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                            this.mpu.descriptor += 4;
 
-                            tfhdFlags = (temp[1]&0xFF)<<16 | (temp[2]&0xFF)<<8 | (temp[3]&0xFF);
-                            trafId = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                            mpuDescriptor += 4;
+                            tfhdFlags = temp & 0x00FFFFFFFF;
+                            trafId = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                            //console.log("trafId: " + trafId);
+                            this.mpu.descriptor += 4;
                             if (tfhdFlags & 0x01) {
-                                baseDataOffset = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                                mpuDescriptor += 4;
-                                temp = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-                                mpuDescriptor += 4;
-                                baseDataOffset = baseDataOffset<<32 | (temp[0]&0xFF)<<24 | (temp[1]&0xFF)<<16 | (temp[2]&0xFF)<<8 | (temp[3]&0xFF);
+                                let offset1 = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                                let offset2 = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor+4);
+                                this.mpu.descriptor += 8;
+                                baseDataOffset = offset1<<32 | offset2;
                             }
                             else {
-                                baseDataOffset = mpu.moof_offset;
+                                baseDataOffset = this.mpu.moof_offset;
                             }
-                            mpuDescriptor = tfhdOffset;
+                            this.mpu.descriptor = tfhdOffset;
                             break;
                         }
-                        mpuDescriptor += (tsbSize - 8);
+                        this.mpu.descriptor += (tsbSize - 8);
                         tSize -= tsbSize;
                     }
 
-                    mpuDescriptor = tsbOffset;
+                    this.mpu.descriptor = tsbOffset;
                     tSize = trafSize - 8;
 
                     while (tSize > 0) {
-                        let tsbSize = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                        mpuDescriptor += 4;
-                        boxName = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-                        mpuDescriptor += 4;
+                        let tsbSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                        this.mpu.descriptor += 4;
+                        boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                        this.mpu.descriptor += 4;
 
-                        if (boxName.compare(trun, trunLen) === 0) {
-                            trunOffset = mpuDescriptor;
+                        if (boxName.compare(trun) === 0) {
+                            trunOffset = this.mpu.descriptor;
                         }
-                        else if (boxName.compare(tfdt, tfdtLen) === 0) {
-                            mpuDescriptor += 4;
-                            mpu.decodingTime = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                            mpuDescriptor -= 8;
+                        else if (boxName.compare(tfdt) === 0) {
+                            this.mpu.descriptor += 4;
+                            this.mpu.decodingTime = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                            this.mpu.descriptor -= 8;
                         }
 
-                        mpuDescriptor += (tsbSize - 8);
+                        this.mpu.descriptor += (tsbSize - 8);
                         tSize -= tsbSize;
                     }
 
-                    mpuDescriptor = trunOffset;
-                    if(trafId === mpu.video_trak_id) {
+                    this.mpu.descriptor = trunOffset;
+                    if(trafId === this.mpu.video_trak_id) {
                         let flags = 0;
                         let sample_count = 0;
                         let data_offset = 0;
                         let skipnum = 0;
                         let sizeValueOffset = 0;
                         
-                        let temp = this.get4ByteBuffer(mpu.data, mpuDescriptor);
-                        mpuDescriptor += 4;
+                        let temp = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                        this.mpu.descriptor += 4;
 
-                        flags = (temp[1]&0xFF)<<16 | (temp[2]&0xFF)<<8 | (temp[3]&0xFF);
+                        flags = temp & 0x00FFFFFF;
                         
-                        sample_count = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                        mpuDescriptor += 4;
+                        sample_count = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                        this.mpu.descriptor += 4;
 
                         if (flags & 0x01) {
-                            data_offset = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                            mpuDescriptor += 4;
+                            data_offset = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                            this.mpu.descriptor += 4;
                         }
                         if (flags & 0x04) {
-                            mpuDescriptor += 4;
+                            this.mpu.descriptor += 4;
                         }
                         skipnum = 0;
 
                         if (flags & 0x100) {
-                            mpuDescriptor += 4;
+                            this.mpu.descriptor += 4;
                         }
                         if (flags & 0x200) {
-                            sizeValueOffset = mpuDescriptor;
+                            sizeValueOffset = this.mpu.descriptor;
                             skipnum += 4;
                         }
                         if (flags & 0x400) {
@@ -511,24 +585,24 @@ class MPUDissolver {
                         if (flags & 0x800) {
                             skipnum += 4;
                         }
-
-                        mpu.video_sample_count = sample_count;
-                        mpu.video_sample_size_offset = sizeValueOffset;
-                        mpu.video_sample_size_seek_num = skipnum;
-                        mpu.video_sample_offset = baseDataOffset + data_offset;
+                        //console.log("sample_count: " + sample_count);
+                        this.mpu.video_sample_count = sample_count;
+                        this.mpu.video_sample_size_offset = sizeValueOffset;
+                        this.mpu.video_sample_size_seek_num = skipnum;
+                        this.mpu.video_sample_offset = baseDataOffset + data_offset;
                     }
 
-                    if (trafId === mpu.hint_trak_id) {
+                    if (trafId === this.mpu.hint_trak_id) {
                         let data_offset = 0;
-                        mpuDescriptor += 8;
-                        data_offset = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-                        mpuDescriptor += 4;
+                        this.mpu.descriptor += 8;
+                        data_offset = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                        this.mpu.descriptor += 4;
 
-                        mpu.hint_sample_offset = baseDataOffset + data_offset;
+                        this.mpu.hint_sample_offset = baseDataOffset + data_offset;
                     }
-                    mpuDescriptor = tsbOffset;
+                    this.mpu.descriptor = tsbOffset;
                 }
-                mpuDescriptor += (msbSize - 8);
+                this.mpu.descriptor += (msbSize - 8);
                 moofBoxSize -= msbSize;
             }
         }
@@ -536,25 +610,26 @@ class MPUDissolver {
             let video_sample_size = 0;
             let hint_sample_size = 4;
 
-            mpuDescriptor = mpu.video_sample_size_offset;
-            video_sample_size = this.getIntTo4ByteBuffer(mpu.data, mpuDescriptor);
-            mpuDescriptor += 4;
+            this.mpu.descriptor = this.mpu.video_sample_size_offset;
+            video_sample_size = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+            this.mpu.descriptor += 4;
             
-            if (mpu.asset_type === AssetType.timed) {
+            if (this.mpu.asset_type === AssetType.timed) {
                 hint_sample_size += 26;
             }
             else {
                 hint_sample_size += 2;
             }
 
-            mpu.video_sample_size_offset += mpu.video_sample_size_seek_num;
-            mpu.video_sample_offset += video_sample_size;
-            mpu.hint_sample_offset += hint_sample_size;
+            this.mpu.video_sample_size_offset += this.mpu.video_sample_size_seek_num;
+            this.mpu.video_sample_offset += video_sample_size;
+            this.mpu.hint_sample_offset += hint_sample_size;
         }
     }
 }
 module.exports = MPUDissolver;
 
+/*
 var FileController = require("../Client/util/file-controller.js");
 var fileController = new FileController();
 var mpu_path = "/Users/daehee/Git/MMT-WebPlayer/mpu-manager/mpus/000.mp4";
@@ -565,3 +640,4 @@ if (mpuData === null) {
 var dissolver = new MPUDissolver ();//mpuData, mpuData.length);
 dissolver.mpuData = mpuData;
 var mpuFrags = dissolver.mpuFragments;
+*/
