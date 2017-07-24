@@ -1,0 +1,299 @@
+hdlr->video_sample_size_offset: 2196, hdlr->hint_sample_offset: 162234.
+hdlr->video_sample_offset: 155052
+hdlr->hint_sample_offset: 162264
+hdlr->video_sample_size_offset: 2204, hdlr->hint_sample_offset: 162264.
+hdlr->video_sample_offset: 155251
+hdlr->hint_sample_offset: 162294
+hdlr->video_sample_size_offset: 2212, hdlr->hint_sample_offset: 162294.
+hdlr->video_sample_offset: 155397
+hdlr->hint_sample_offset: 162324
+hdlr->video_sample_size_offset: 2220, hdlr->hint_sample_offset: 162324.
+hdlr->video_sample_offset: 155531
+hdlr->hint_sample_offset: 162354
+hdlr->video_sample_size_offset: 2228, hdlr->hint_sample_offset: 162354.
+hdlr->video_sample_offset: 155707
+hdlr->hint_sample_offset: 162384
+hdlr->video_sample_size_offset: 2236, hdlr->hint_sample_offset: 162384.
+hdlr->video_sample_offset: 155914
+hdlr->hint_sample_offset: 162414
+hdlr->video_sample_size_offset: 2244, hdlr->hint_sample_offset: 162414.
+hdlr->video_sample_offset: 156051
+hdlr->hint_sample_offset: 162444
+hdlr->video_sample_size_offset: 2252, hdlr->hint_sample_offset: 162444.
+hdlr->video_sample_offset: 156182
+hdlr->hint_sample_offset: 162474
+hdlr->video_sample_size_offset: 2260, hdlr->hint_sample_offset: 162474.
+hdlr->video_sample_offset: 156550
+hdlr->hint_sample_offset: 162504
+hdlr->video_sample_size_offset: 2268, hdlr->hint_sample_offset: 162504.
+hdlr->video_sample_offset: 156749
+hdlr->hint_sample_offset: 162534
+hdlr->video_sample_size_offset: 2276, hdlr->hint_sample_offset: 162534.
+hdlr->video_sample_offset: 156885
+hdlr->hint_sample_offset: 162564
+hdlr->video_sample_size_offset: 2284, hdlr->hint_sample_offset: 162564.
+hdlr->video_sample_offset: 157063
+hdlr->hint_sample_offset: 162594
+hdlr->video_sample_size_offset: 2292, hdlr->hint_sample_offset: 162594.
+hdlr->video_sample_offset: 157123
+hdlr->hint_sample_offset: 162624
+hdlr->video_sample_size_offset: 2300, hdlr->hint_sample_offset: 162624.
+hdlr->video_sample_offset: 157176
+hdlr->hint_sample_offset: 162654
+hdlr->video_sample_size_offset: 2308, hdlr->hint_sample_offset: 162654.
+hdlr->video_sample_offset: 157228
+hdlr->hint_sample_offset: 162684
+hdlr->video_sample_size_offset: 2316, hdlr->hint_sample_offset: 162684.
+hdlr->video_sample_offset: 157280
+hdlr->hint_sample_offset: 162714
+hdlr->video_sample_size_offset: 2324, hdlr->hint_sample_offset: 162714.
+hdlr->video_sample_offset: 157338
+hdlr->hint_sample_offset: 162744
+hdlr->video_sample_size_offset: 2332, hdlr->hint_sample_offset: 162744.
+hdlr->video_sample_offset: 157391
+hdlr->hint_sample_offset: 162774
+hdlr->video_sample_size_offset: 2340, hdlr->hint_sample_offset: 162774.
+hdlr->video_sample_offset: 157443
+hdlr->hint_sample_offset: 162804
+hdlr->video_sample_size_offset: 2348, hdlr->hint_sample_offset: 162804.
+hdlr->video_sample_offset: 157495
+hdlr->hint_sample_offset: 162834
+hdlr->video_sample_size_offset: 2356, hdlr->hint_sample_offset: 162834.
+hdlr->video_sample_offset: 157553
+hdlr->hint_sample_offset: 162864
+hdlr->video_sample_size_offset: 2364, hdlr->hint_sample_offset: 162864.
+hdlr->video_sample_offset: 157606
+hdlr->hint_sample_offset: 162894
+hdlr->video_sample_size_offset: 2372, hdlr->hint_sample_offset: 162894.
+hdlr->video_sample_offset: 157658
+hdlr->hint_sample_offset: 162924
+hdlr->video_sample_size_offset: 2380, hdlr->hint_sample_offset: 162924.
+hdlr->video_sample_offset: 157710
+hdlr->hint_sample_offset: 162954
+hdlr->video_sample_size_offset: 2388, hdlr->hint_sample_offset: 162954.
+hdlr->video_sample_offset: 157768
+hdlr->hint_sample_offset: 162984
+hdlr->video_sample_size_offset: 2396, hdlr->hint_sample_offset: 162984.
+hdlr->video_sample_offset: 157821
+hdlr->hint_sample_offset: 163014
+hdlr->video_sample_size_offset: 2404, hdlr->hint_sample_offset: 163014.
+hdlr->video_sample_offset: 157873
+hdlr->hint_sample_offset: 163044
+hdlr->video_sample_size_offset: 2412, hdlr->hint_sample_offset: 163044.
+hdlr->video_sample_offset: 157925
+hdlr->hint_sample_offset: 163074
+hdlr->video_sample_size_offset: 2420, hdlr->hint_sample_offset: 163074.
+hdlr->video_sample_offset: 157983
+hdlr->hint_sample_offset: 163104
+hdlr->video_sample_size_offset: 2428, hdlr->hint_sample_offset: 163104.
+hdlr->video_sample_offset: 158036
+hdlr->hint_sample_offset: 163134
+hdlr->video_sample_size_offset: 2436, hdlr->hint_sample_offset: 163134.
+hdlr->video_sample_offset: 158088
+hdlr->hint_sample_offset: 163164
+hdlr->video_sample_size_offset: 2444, hdlr->hint_sample_offset: 163164.
+hdlr->video_sample_offset: 158140
+hdlr->hint_sample_offset: 163194
+hdlr->video_sample_size_offset: 2452, hdlr->hint_sample_offset: 163194.
+hdlr->video_sample_offset: 158206
+hdlr->hint_sample_offset: 163224
+hdlr->video_sample_size_offset: 2460, hdlr->hint_sample_offset: 163224.
+hdlr->video_sample_offset: 158259
+hdlr->hint_sample_offset: 163254
+hdlr->video_sample_size_offset: 2468, hdlr->hint_sample_offset: 163254.
+hdlr->video_sample_offset: 158311
+hdlr->hint_sample_offset: 163284
+hdlr->video_sample_size_offset: 2476, hdlr->hint_sample_offset: 163284.
+hdlr->video_sample_offset: 158363
+hdlr->hint_sample_offset: 163314
+hdlr->video_sample_size_offset: 2484, hdlr->hint_sample_offset: 163314.
+hdlr->video_sample_offset: 158423
+hdlr->hint_sample_offset: 163344
+hdlr->video_sample_size_offset: 2492, hdlr->hint_sample_offset: 163344.
+hdlr->video_sample_offset: 158476
+hdlr->hint_sample_offset: 163374
+hdlr->video_sample_size_offset: 2500, hdlr->hint_sample_offset: 163374.
+hdlr->video_sample_offset: 158528
+hdlr->hint_sample_offset: 163404
+hdlr->video_sample_size_offset: 2508, hdlr->hint_sample_offset: 163404.
+hdlr->video_sample_offset: 158580
+hdlr->hint_sample_offset: 163434
+hdlr->video_sample_size_offset: 2516, hdlr->hint_sample_offset: 163434.
+hdlr->video_sample_offset: 158638
+hdlr->hint_sample_offset: 163464
+hdlr->video_sample_size_offset: 2524, hdlr->hint_sample_offset: 163464.
+hdlr->video_sample_offset: 158691
+hdlr->hint_sample_offset: 163494
+hdlr->video_sample_size_offset: 2532, hdlr->hint_sample_offset: 163494.
+hdlr->video_sample_offset: 158743
+hdlr->hint_sample_offset: 163524
+hdlr->video_sample_size_offset: 2540, hdlr->hint_sample_offset: 163524.
+hdlr->video_sample_offset: 158795
+hdlr->hint_sample_offset: 163554
+hdlr->video_sample_size_offset: 2548, hdlr->hint_sample_offset: 163554.
+hdlr->video_sample_offset: 158860
+hdlr->hint_sample_offset: 163584
+hdlr->video_sample_size_offset: 2556, hdlr->hint_sample_offset: 163584.
+hdlr->video_sample_offset: 158912
+hdlr->hint_sample_offset: 163614
+hdlr->video_sample_size_offset: 2564, hdlr->hint_sample_offset: 163614.
+Count: 158
+0: 1232
+1: 1424
+2: 76113
+3: 2651
+4: 391
+5: 183
+6: 211
+7: 8881
+8: 8533
+9: 6633
+10: 1073
+11: 733
+12: 371
+13: 1593
+14: 706
+15: 326
+16: 226
+17: 2170
+18: 669
+19: 364
+20: 240
+21: 617
+22: 525
+23: 243
+24: 215
+25: 1005
+26: 10820
+27: 3903
+28: 640
+29: 501
+30: 260
+31: 1562
+32: 412
+33: 306
+34: 231
+35: 965
+36: 359
+37: 251
+38: 198
+39: 398
+40: 288
+41: 202
+42: 191
+43: 217
+44: 258
+45: 185
+46: 175
+47: 1361
+48: 375
+49: 221
+50: 332
+51: 777
+52: 394
+53: 316
+54: 206
+55: 297
+56: 247
+57: 194
+58: 179
+59: 121
+60: 241
+61: 164
+62: 159
+63: 131
+64: 226
+65: 171
+66: 164
+67: 116
+68: 238
+69: 163
+70: 157
+71: 1226
+72: 349
+73: 203
+74: 312
+75: 719
+76: 400
+77: 325
+78: 208
+79: 171
+80: 248
+81: 175
+82: 165
+83: 128
+84: 237
+85: 169
+86: 166
+87: 139
+88: 229
+89: 170
+90: 165
+91: 119
+92: 240
+93: 161
+94: 157
+95: 1180
+96: 353
+97: 199
+98: 309
+99: 642
+100: 393
+101: 328
+102: 208
+103: 147
+104: 238
+105: 170
+106: 163
+107: 124
+108: 234
+109: 165
+110: 160
+111: 158
+112: 229
+113: 176
+114: 164
+115: 206
+116: 237
+117: 167
+118: 161
+119: 398
+120: 229
+121: 166
+122: 208
+123: 90
+124: 83
+125: 82
+126: 82
+127: 88
+128: 83
+129: 82
+130: 82
+131: 88
+132: 83
+133: 82
+134: 82
+135: 88
+136: 83
+137: 82
+138: 82
+139: 88
+140: 83
+141: 82
+142: 82
+143: 96
+144: 83
+145: 82
+146: 82
+147: 90
+148: 83
+149: 82
+150: 82
+151: 88
+152: 83
+153: 82
+154: 82
+155: 95
+156: 82
+157: 82
+Count: 0
