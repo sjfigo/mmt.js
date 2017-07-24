@@ -59,7 +59,7 @@ class MPUTester {
 module.exports = MPUTester;
 
 var mpuTester = new MPUTester();
-mpuTester.path = mpuTester.inMPUPath + "test1_The Dark Knight Rise_1080p__MPU_000.mp4";
+mpuTester.path = mpuTester.inMPUPath + "000.mp4";
 mpuTester.readMPU();
 mpuTester.dissolve();
 mpuTester.rebuild();

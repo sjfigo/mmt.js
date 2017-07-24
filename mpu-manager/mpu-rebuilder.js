@@ -26,6 +26,9 @@ class MPURebuilder {
         //let mpuFragment = new MPUFragment(type, mpuFragData, size);
 
         console.log("Set mpuFrag size: "+mpuFrag.size);
+        console.log("Set mpuFrag type: "+mpuFrag.type);
+        let temp = this.get4ByteBuffer(mpuFrag.data, 4);
+        console.log("Set mpuFrag type2: "+temp);
         
         //this.mpuFrags.push(mpuFrag);
         //console.log("Number of mpu frags: "+this.mpuFrags.length);
@@ -234,11 +237,12 @@ class MPURebuilder {
             this.setMoofMetadata(mpuFrag);
         }
         else if (mpuFrag.type === MPU_Fragment_Type.mdat) {
-            // 시작 포인트가 다른것 같다. 윈도우에서 위치를 로그찍어서 비교해보자.
             let iterator = 0;
             let mfu = new MFU();
             mfu.mfu_num = this.getIntTo4ByteBuffer(mpuFrag.data, iterator);
             console.log("mfu.mfu_num: "+mfu.mfu_num);
+            let temp = this.get4ByteBuffer(mpuFrag.data, iterator+4);
+            console.log("mfu.type: "+temp);
             iterator += 11;
             mfu.offset = this.getIntTo4ByteBuffer(mpuFrag.data, iterator);
             console.log("mfu.offset: "+mfu.offset);
