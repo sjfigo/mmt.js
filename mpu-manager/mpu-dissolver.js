@@ -130,7 +130,7 @@ class MPUDissolver {
         let size = targetPosition + dataLength;
         let resultBuffer = null;
 
-        console.log("bufferCopy - data.length: "+data.length+", dataPosition: "+dataPosition+", targetLength: "+targetLength+", size: "+size);
+        //console.log("bufferCopy - data.length: "+data.length+", dataPosition: "+dataPosition+", targetLength: "+targetLength+", size: "+size);
         if (targetLength > size) {
             resultBuffer = Buffer.allocUnsafe(targetLength).fill(0x00);
             target.copy(resultBuffer, 0, 0, targetLength);
@@ -203,9 +203,8 @@ class MPUDissolver {
         let i=0;
         let typeName;
         for(i=0; i<mpuFragCnt; i++) {
-            console.log("Parsing check["+i+"].type: " +mpuFragArr[i].type);
+            console.log("Parsing check["+i+"].type: " + mpuFragArr[i].type + ", size:" + mpuFragArr[i].size);
             typeName = this.get4ByteBuffer(mpuFragArr[i].data, 4);
-            console.log("Parsing check["+i+"].boxName: " +typeName);
         }
 
         return mpuFragArr;
@@ -314,22 +313,21 @@ class MPUDissolver {
         else {
             hintSampleSize += 2;
         }
-        console.log("getMFU - hintSampleSize: "+hintSampleSize+", videoSampleSize: "+videoSampleSize);
-        console.log("getMFU - this.mpu.hint_sample_offset: "+this.mpu.hint_sample_offset+", this.mpu.video_sample_offset: "+this.mpu.video_sample_offset);
+        //console.log("getMFU - hintSampleSize: "+hintSampleSize+", videoSampleSize: "+videoSampleSize);
+        //console.log("getMFU - this.mpu.hint_sample_offset: "+this.mpu.hint_sample_offset+", this.mpu.video_sample_offset: "+this.mpu.video_sample_offset);
 
         mpuFrag.size = hintSampleSize + videoSampleSize;
 
-        // hint_sample_offset과 video_samepl_offset을 윈도우에서 찍어보자
         mpuFrag.data = Buffer.allocUnsafe(hintSampleSize + videoSampleSize).fill(0x00);
         mpuFrag.data = this.bufferCopy(mpuFrag.data, 0, this.mpu.data, this.mpu.hint_sample_offset, hintSampleSize);
-        console.log("buffercopy check1: "+mpuFrag.data.compare(this.mpu.data, this.mpu.hint_sample_offset, this.mpu.hint_sample_offset+hintSampleSize, 0, hintSampleSize));
+        //console.log("buffercopy check1: "+mpuFrag.data.compare(this.mpu.data, this.mpu.hint_sample_offset, this.mpu.hint_sample_offset+hintSampleSize, 0, hintSampleSize));
         mpuFrag.data = this.bufferCopy(mpuFrag.data, hintSampleSize, this.mpu.data, this.mpu.video_sample_offset, videoSampleSize);
-        console.log("buffercopy check2: "+mpuFrag.data.compare(this.mpu.data, this.mpu.video_sample_offset, this.mpu.video_sample_offset+videoSampleSize, hintSampleSize, hintSampleSize+videoSampleSize));
+        //console.log("buffercopy check2: "+mpuFrag.data.compare(this.mpu.data, this.mpu.video_sample_offset, this.mpu.video_sample_offset+videoSampleSize, hintSampleSize, hintSampleSize+videoSampleSize));
         let temp = this.get4ByteBuffer(mpuFrag.data, 4);
-        console.log("getMFU - type1: "+temp);
+        //console.log("getMFU - type1: "+temp);
 
         mpuFrag.type = MPU_Fragment_Type.mdat;
-        console.log("mpuFrag.type: "+mpuFrag.type);
+        //console.log("mpuFrag.type: "+mpuFrag.type);
 
         //console.log("video_sample_count: " + this.mpu.video_sample_count);
         this.mpu.video_sample_count --;
@@ -488,17 +486,19 @@ class MPUDissolver {
         //console.log("getSampleOffset - this.mpu.descriptor: "+this.mpu.descriptor);
         
         if (this.mpu.video_sample_count === 0) {
+            //console.log("--if------video_sample_count === 0------------------------------");
+            //console.log("this.mpu.video_sample_count: "+this.mpu.video_sample_count);
             let moofBoxSize = 0;
             this.mpu.descriptor = this.mpu.moof_offset;
             moofBoxSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor) - 8;
             boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor+4);
-            console.log("moof box name: "+boxName);
+            //console.log("moofBoxSize: "+moofBoxSize+", box name: "+boxName);
             this.mpu.descriptor += 8;
 
             while (moofBoxSize > 0) {
                 let msbSize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
-                
                 boxName = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor+4);
+                //console.log("this.mpu.descriptor: "+this.mpu.descriptor+", msbSize: "+msbSize+", boxName: "+boxName);
                 this.mpu.descriptor += 8;
                 
                 if (boxName.compare(traf) === 0) {
@@ -521,24 +521,32 @@ class MPUDissolver {
 
                         if (boxName.compare(tfhd) === 0) {
                             let tfhdOffset = this.mpu.descriptor;
-                            tfhdFlags = this.get4ByteBuffer(this.mpu.data, this.mpu.descriptor) & 0x00FFFFFF;
+                            tfhdFlags = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor) &0x00FFFFFF;
                             trafId = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor+4);
+                            //console.log("this.mpu.descriptor: "+this.mpu.descriptor+", tfhdFlags: "+tfhdFlags+", trafId: "+trafId);
                             this.mpu.descriptor += 8;
                             
-                            this.mpu.descriptor += 4;
                             if (tfhdFlags & 0x01) {
                                 let offset1 = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+                                //console.log("offset1: "+offset1);
                                 let offset2 = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor+4);
+                                //console.log("offset2: "+offset2);
                                 this.mpu.descriptor += 8;
-                                baseDataOffset = (offset1 << 32) | offset2;
+                                offset1 <<= 32;
+                                //console.log("offset1: "+offset1);
+                                baseDataOffset = offset1 | offset2;
+                                //console.log("tfhd - 0x01: baseDataOffset: "+baseDataOffset);
+                                //console.log("this.mpu.descriptor: "+ (this.mpu.descriptor-8));
                             }
                             else {
                                 baseDataOffset = this.mpu.moof_offset;
+                                //console.log("tfhd - !0x01: baseDataOffset: "+baseDataOffset);
                             }
                             this.mpu.descriptor = tfhdOffset;
                             break;
                         }
                         this.mpu.descriptor += (tsbSize - 8);
+                        //console.log("tSize: "+tSize+", tsbSize: "+tsbSize);
                         tSize -= tsbSize;
                     }
 
@@ -568,10 +576,10 @@ class MPUDissolver {
                         let data_offset = 0;
                         let skipnum = 0;
                         let sizeValueOffset = 0;
-                        console.log("Flag position: "+this.mpu.descriptor);
+                        //console.log("Flag position: "+this.mpu.descriptor);
 
                         flags = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor) & 0x00FFFFFF;
-                        console.log("Flag: "+flags);
+                        //console.log("Flag: "+flags);
                         
                         sample_count = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor+4);
                         this.mpu.descriptor += 8;
@@ -601,9 +609,13 @@ class MPUDissolver {
                         }
                         //console.log("sample_count: " + sample_count);
                         this.mpu.video_sample_count = sample_count;
+                        //console.log("this.mpu.video_sample_count: "+this.mpu.video_sample_count);
                         this.mpu.video_sample_size_offset = sizeValueOffset;
+                        //console.log("this.mpu.video_sample_size_offset: "+this.mpu.video_sample_size_offset);
                         this.mpu.video_sample_size_seek_num = skipnum;
+                        //console.log("this.mpu.video_sample_size_seek_num: "+this.mpu.video_sample_size_seek_num);
                         this.mpu.video_sample_offset = baseDataOffset + data_offset;
+                        //console.log("this.mpu.video_sample_offset: "+this.mpu.video_sample_offset);
                     }
 
                     if (trafId === this.mpu.hint_trak_id) {
@@ -612,7 +624,7 @@ class MPUDissolver {
                         data_offset = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
                         this.mpu.descriptor += 4;
 
-                        console.log("baseDataOffset: "+baseDataOffset+", data_offset: " +data_offset);
+                        //console.log("baseDataOffset: "+baseDataOffset+", data_offset: " +data_offset);
                         this.mpu.hint_sample_offset = baseDataOffset + data_offset;
                     }
                     this.mpu.descriptor = tsbOffset;
@@ -620,13 +632,17 @@ class MPUDissolver {
                 this.mpu.descriptor += (msbSize - 8);
                 moofBoxSize -= msbSize;
             }
+            //console.log("--end if--------------------------------------------------------");
         }
         else {
             let video_sample_size = 0;
             let hint_sample_size = 4;
-
+            //console.log("--else----------------------------------------------------------");
+            //console.log("this.mpu.video_sample_count: "+this.mpu.video_sample_count);
             this.mpu.descriptor = this.mpu.video_sample_size_offset;
+            //console.log("this.mpu.descriptor: "+this.mpu.descriptor);
             video_sample_size = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.descriptor);
+            //console.log("video_sample_size: "+video_sample_size);
             this.mpu.descriptor += 4;
             
             if (this.mpu.asset_type === AssetType.timed) {
@@ -635,13 +651,14 @@ class MPUDissolver {
             else {
                 hint_sample_size += 2;
             }
-
+            //console.log("hint_sample_size: "+hint_sample_size);
             this.mpu.video_sample_size_offset += this.mpu.video_sample_size_seek_num;
             this.mpu.video_sample_offset += video_sample_size;
             this.mpu.hint_sample_offset += hint_sample_size;
 
-            console.log("this.mpu.video_sample_offset: "+this.mpu.video_sample_offset);
-            console.log("this.mpu.hint_sample_offset: "+this.mpu.hint_sample_offset);
+            //console.log("this.mpu.video_sample_offset: "+this.mpu.video_sample_offset);
+            //console.log("this.mpu.hint_sample_offset: "+this.mpu.hint_sample_offset);
+            //console.log("--end else-----------------------------------------------------");
         }
     }
 }

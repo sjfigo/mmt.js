@@ -4,6 +4,13 @@
         {
             "type": "node",
             "request": "launch",
+            "protocol": "inspector",
+            "name": "Launch mpu-tester",
+            "program": "${workspaceRoot}/mpu-manager/mpu-tester.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch Program",
             "program": "${workspaceRoot}/Client/samples/app.js",
             "cwd": "${workspaceRoot}"

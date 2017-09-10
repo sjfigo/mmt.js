@@ -11,7 +11,7 @@ class MPUMetadata {
     set moov_offset (offset) {
         this.moovOffset = offset;
     }
-    get video_trak_id () {
+    /*get video_trak_id () {
         return this.videoTrakId;
     }
     set video_trak_id (id) {
@@ -22,7 +22,7 @@ class MPUMetadata {
     }
     set hint_trak_id (id) {
         this.hintTrakId = id;
-    }
+    }*/
     get asset_type () {
         return this.assetType;
     }

@@ -7,8 +7,8 @@ var that = null;
 class MPUTester {
     constructor () {
         this.mpu_path = null;
-        this.inMPUPath = "/Users/daehee/Git/MMT-WebPlayer/mpu-manager/mpus/";
-        this.outMPUPath = "/Users/daehee/Git/MMT-WebPlayer/mpu-manager/OutputMPUs/";
+        this.inMPUPath = "./mpu-manager/mpus/";
+        this.outMPUPath = "./mpu-manager/OutputMPUs/";
         this.outMPUFsCnt = 0;
 
         this.mpuData = null;
@@ -53,6 +53,7 @@ class MPUTester {
             this.mpuRebuilder.mpuFrag = this.mpuFrags[i];
         }
 
+        this.mpuRebuilder.resolve();
         console.log("rebuilded.");
     }
 }
