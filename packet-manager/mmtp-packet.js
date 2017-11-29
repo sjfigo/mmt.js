@@ -4,7 +4,7 @@ class mmtpPacket {
                 FEC,                        // 2bits, FEC type
                 P,                          // 1bit, private user data flag
                 E,                          // 1bit, Extension flag
-                RES,                        // 10bits, Reserved
+           //   RES,                        // 10bits, Reserved
                 packet_id,                  // 16bits, packet ID
                 packet_sequence_number,     // 32bits, packet sequence number
                 timestamp,                  // 32bits, NTP time stamp
@@ -22,7 +22,7 @@ class mmtpPacket {
         this.FEC_ = FEC;
         this.P_ = P;
         this.E_ = E;
-        this.RES_ = RES;
+        this.RES_ = 0x00;
         this.packet_id_ = packet_id;
         this.packet_sequence_number_ = packet_sequence_number;
         this.timestamp_ = timestamp;
@@ -34,6 +34,10 @@ class mmtpPacket {
         this.ext_type_ = ext_type;
         this.ext_length_ = ext_length;
         this.ext_header_extension_value_ = ext_header_extension_value;
+    }
+
+    get MTU () {
+        return 1500;
     }
 
     set version (v) {
@@ -156,3 +160,4 @@ class mmtpPacket {
         return this.ext_header_extension_value_;
     }
 }
+module.exports = mmtpPacket;
