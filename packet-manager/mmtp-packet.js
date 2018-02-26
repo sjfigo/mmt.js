@@ -5,10 +5,10 @@ class mmtpPacket {
                 P,                          // 1bit, private user data flag
                 E,                          // 1bit, Extension flag
            //   RES,                        // 10bits, Reserved
-                packet_id,                  // 16bits, packet ID
-                packet_sequence_number,     // 32bits, packet sequence number
+                packet_id,                  // 16bits, packet ID (Mapped with Asset ID by MPT signaling msg)
+                packet_sequence_number,     // 32bits, packet sequence number (In same packet ID)
                 timestamp,                  // 32bits, NTP time stamp
-                packet_counter,             // 32bits, counting MMT packet
+                packet_counter,             // 32bits, counting MMT packet at send. (Related not with Asset.)
                 private_user_data,          // 16bits, private user data
                 payload_data,               // payload data
                 source_FEC_payload_ID,      // 32bits, use only AL-FEC (FEC type is 1)

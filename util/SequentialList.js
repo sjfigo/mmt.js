@@ -197,6 +197,7 @@ class SequentialList {
             return null;
         }
     }
+    
     putItem (item) {
         let len = this._seqList.length;
         if(len <= 0) {

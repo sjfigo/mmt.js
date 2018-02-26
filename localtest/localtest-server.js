@@ -34,4 +34,4 @@ let server = Http.createServer(function (req, res) {
         Fs.createReadStream(path).pipe(res);
     }
 });
-server.listen(1337, "192.168.1.4");
+//server.listen(1337, "192.168.1.4");

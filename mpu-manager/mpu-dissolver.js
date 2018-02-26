@@ -176,35 +176,51 @@ class MPUDissolver {
             
             if (boxName.compare(mdat) === 0) {
                 mpuFrag = this.getMFU(boxSize);
-                console.log(mpuFragCnt+". length: "+mpuFrag.size+", type: mdat");
+                //console.log(mpuFragCnt+". length: "+mpuFrag.size+", type: mdat");
+                if (mpuFrag === null){
+                    break;
+                }
+    
+                mpuFragArr.push({
+                    type : MPU_Fragment_Type.mdat,
+                    data : mpuFrag
+                });
+
+                mpuFragCnt++;
             }
             else if (boxName.compare(ftyp) === 0) {
                 mpuFrag = this.getMPUMeta();
-                console.log(mpuFragCnt+". length: "+mpuFrag.size+", type: ftyp");
+                //console.log(mpuFragCnt+". length: "+mpuFrag.size+", type: ftyp");
+                if (mpuFrag === null){
+                    break;
+                }
+    
+                mpuFragArr.push({
+                    type : MPU_Fragment_Type.ftyp,
+                    data : mpuFrag
+                });
+
+                mpuFragCnt++;
             }
             else if (boxName.compare(moof) === 0) {
                 mpuFrag = this.getMovieFragMeta(boxSize);
-                console.log(mpuFragCnt+". length: "+mpuFrag.size+", type: moof");
+                //console.log(mpuFragCnt+". length: "+mpuFrag.size+", type: moof");
+                if (mpuFrag === null){
+                    break;
+                }
+    
+                mpuFragArr.push({
+                    type : MPU_Fragment_Type.moof,
+                    data : mpuFrag
+                });
+
+                mpuFragCnt++;
             }
             else {
                 console.log("not matched");
                 break;
             }
             // end of mmte_khu1_GetNextMPUFragment
-
-            if (mpuFrag === null){
-                break;
-            }
-
-            mpuFragArr[mpuFragCnt] = mpuFrag;
-            mpuFragCnt++;
-        }
-
-        let i=0;
-        let typeName;
-        for(i=0; i<mpuFragCnt; i++) {
-            console.log("Parsing check["+i+"].type: " + mpuFragArr[i].type + ", size:" + mpuFragArr[i].size);
-            typeName = this.get4ByteBuffer(mpuFragArr[i].data, 4);
         }
 
         return mpuFragArr;

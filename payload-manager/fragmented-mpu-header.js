@@ -11,6 +11,7 @@ class FragmentedMPUHeader {
         this.item_ID_ = item_ID; // 32bits, only non-timed
     }
 
+    /*
     make () {
         let header = null;
         let headerIter = 0;
@@ -45,7 +46,9 @@ class FragmentedMPUHeader {
             itemIdBuf.copy(header, headerIter, 0, 4);
             headerIter += 4;
         }
-    }
+
+        return header;
+    }*/
 
     set fragmentType (ft) {
         this.FT_ = ft;
@@ -67,6 +70,9 @@ class FragmentedMPUHeader {
         else if (this.T_ === 0x01) {
             return false;
         }
+    }
+    get Timed () {
+        return this.T_;
     }
 
     set movieFragSeqNum (num) {

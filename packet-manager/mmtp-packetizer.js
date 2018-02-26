@@ -1,23 +1,23 @@
-var mmtpPacket = require("mmtp-packet.js");
-var NTP = require("ntp.js");
+var mmtpPacket = require("./mmtp-packet");
+var NTP = require("./ntp");
 
 class mmtpPacketizer {
     constructor () {
         this.packetList = [];
+        this.packetIterator = 0;
         this.packetCounter = 0;
         this.packetSeqNum = 0;
         this.prePktId = 0;
         this.ntp = new NTP();
     }
 
-    set packetInitId (id) {
-        this.packetInitId = id;
-    }
-
     get packet () {
         if (this.packetList.length > 0) {
-            let packet = this.packetList[0];
-            this.packetList.splice(0, 1);
+            if (packetIterator > 100 && this.packetList.length > this.packetIterator+1) {
+                this.packetList.splice(0, this.packetIterator);
+                this.packetIterator = 0;
+            }
+            let packet = this.packetList[this.packetIterator++];
             return packet;
         }
         else {
@@ -25,7 +25,12 @@ class mmtpPacketizer {
         }
     }
 
-    set fragment (fragment, packetId) {
+    reset () {
+        this.packetIterator = 0;
+        this.packetList.splice(0, this.packetList.length);
+    }
+
+    setFragment (fragment, packetId) {
         let i = 0;
         let fragSize = fragment.length;
         let packet = new mmtpPacket ();
@@ -79,6 +84,7 @@ class mmtpPacketizer {
                 this.packetSeqNum = 0;
             }
             packet.timestamp = this.ntp.now; // ??? using open source
+
             let copyLen = 0;
             if (i + payloadMaxSize >= fragSize) {
                 copyLen = fragSize - i;

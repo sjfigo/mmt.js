@@ -16,6 +16,13 @@
             "cwd": "${workspaceRoot}"
         },
         {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Server&Client Test",
+            "program": "${workspaceRoot}/Client/mmt-client.js",
+            "cwd": "${workspaceRoot}"
+        },
+        {
             "name": "Launch Chrome against localhost",
             "type": "chrome",
             "request": "launch",

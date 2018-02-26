@@ -32,6 +32,7 @@ class mmtPayloadHeader {
         this.DU_Payload_.push(DU_Payload);
     }
 
+    /*
     make () {
         let payload = null;
         let payloadIter = 0;
@@ -61,7 +62,7 @@ class mmtPayloadHeader {
             DUPayloadBuffer.copy(DUBuffer, 2 + DUHeaderLen, 0, this.DU_length_[0]);
         }
         else {
-            let DUCnt = DU_length_.length;
+            let DUCnt = this.DU_length_.length;
             let DUBufferIter = 0;
             let i = 0;
             for (i=0; i<DUCnt; i++) {
@@ -107,7 +108,7 @@ class mmtPayloadHeader {
     }
     get length () {
         return this.length_;
-    }
+    }*/
     
     /**
     * 0x00 - MPU 
@@ -126,7 +127,7 @@ class mmtPayloadHeader {
 
     /**
      * 00 - number of data units >= 1
-    * 01 - first fragment
+    * 01 - first fragment of data unit
     * 10 - fragment of data unit that is neither the first nor the last part
     * 11 - last fragment of data unit
     */
@@ -164,13 +165,20 @@ class mmtPayloadHeader {
     }
 
     set mpuSequenceNumberFlag (m) {
-        this.MPU_sequence_number_ = m;
+        this.M_ = m;
     }
     get mpuSequenceNumberFlag () {
-        return this.MPU_sequence_number_;
+        return this.M_;
     }
     isMpuSequenceNumberFlag () {
-        return this.MPU_sequence_number_;
+        return this.M_;
+    }
+
+    set S (s) {
+        this.S_ = s;
+    }
+    get S () {
+        return this.S_;
     }
 
     set fragmentCounter (frag_count) {
@@ -204,6 +212,27 @@ class mmtPayloadHeader {
         else {
             return null;
         }
+    }
+
+    /*set DataUnitLength (du_length) {
+        this.DU_length_ = du_length;
+    }*/
+    get DataUnitLength () {
+        return this.DU_length_;
+    }
+
+    /*set DataUnitHeader (du_header) {
+        this.DU_Header_ = du_header;
+    }*/
+    get DataUnitHeader () {
+        return this.DU_Header_;
+    }
+
+    /*set DataUnitPayload (du_payload) {
+        this.DU_Payload_ = du_payload;
+    }*/
+    get DataUnitPayload () {
+        return this.DU_Payload_;
     }
 }
 module.exports = mmtPayloadHeader;

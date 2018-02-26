@@ -1,13 +1,51 @@
-var mmtpPacket = require("mmtp-packet.js");
+var mmtpPacket = require("./mmtp-packet");
 
 class mmtpDepacketizer {
     constructor () {
         this.packetList = [];
+        this.iterator = 0;
     }
 
-    set Packet (packet) {
+    set packet (packet) {
         let stPkt = this.depacketize(packet);
         this.packetList.push(stPkt);
+    }
+
+    get packet () {
+        if (this.packetList.length > 0) {
+            if (this.iterator > 100 && this.packetList.length > this.packetIterator+1) {
+                this.packetList.splice(0, this.iterator);
+                this.iterator = 0;
+            }
+            let stPkt = this.packetList[this.iterator++];
+            return stPkt;
+        }
+        else {
+            return null;
+        }
+    }
+
+    makeFragment (packetSet, count) {
+        let i = 0;
+        let packet = null;
+        let packetLen = 0;
+        let totalSize = 0;
+        let fragment = null;
+        let fragIterator = 0;
+
+        for (i=0; i<count; i++) {
+            packet = packetSet[i];
+            totalSize += packet.payload_data.length;
+        }
+        fragment = Buffer.allocUnsafe(totalSize).fill(0x00);
+        for (i=0; i<count; i++) {
+            packet = packetSet[i];
+            packetLen = packet.payload_data.length;
+            packet.payload_data.copy(fragment, fragIterator, 0, packetLen);
+            fragIterator += packetLen;
+        }
+
+        return fragment;
     }
 
     depacketize (pktBuf) {
@@ -32,12 +70,12 @@ class mmtpDepacketizer {
         packet.timestamp = pktBuf.readUInt32BE(iterator);
         iterator += 4;
 
-        if (packet.packetCounterFlag !== null) {
+        if (packet.packetCounterFlag !== 0x00) {
             packet.packetCounter = pktBuf.readUInt32BE(iterator);
             iterator += 4;
         }
 
-        if (packet.privateUserDataFlag !== null) {
+        if (packet.privateUserDataFlag !== 0x00) {
             packet.private_user_data = pktBuf.readUInt16BE(iterator);
             iterator += 2;
         }

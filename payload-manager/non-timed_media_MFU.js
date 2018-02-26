@@ -1,10 +1,15 @@
 class NonTimedMediaMFUHeader {
     constructor (item_ID) {
         this.item_ID_ = item_ID;
+        this.size_ = 32;
     }
 
     make() {
-        return Buffer.allocUnsafe(32).fill(this.item_ID_);
+        return Buffer.allocUnsafe(this.size_).fill(this.item_ID_);
+    }
+
+    get totalSize () {
+        return this.size_;
     }
 
     set item_ID (id) {
