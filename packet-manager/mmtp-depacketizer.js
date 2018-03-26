@@ -65,6 +65,7 @@ class mmtpDepacketizer {
         iterator += 2;
 
         packet.packetSequenceNumber = pktBuf.readUInt32BE(iterator);
+        console.log("depacketizer - packet seq num - "+packet.packetSequenceNumber);
         iterator += 4;
 
         packet.timestamp = pktBuf.readUInt32BE(iterator);
@@ -93,7 +94,7 @@ class mmtpDepacketizer {
         iterator = payloadEnd;
 
         if (packet.fecType === 0x01) {
-            packet.source_FEC_payload_ID = pktBuf.readUInt32(iterator);
+            packet.source_FEC_payload_ID = pktBuf.readUInt32BE(iterator);
         }
         
         if (packet.extensionFlag) {

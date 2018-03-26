@@ -46,12 +46,18 @@ class mmtpPacket {
     get version () {
         return this.V_;
     }
+    get versionBits () {
+        return 2;
+    }
 
     set packetCounterFlag (c) {
         this.C_ = c;
     }
     get packetCounterFlag () {
         return this.C_;
+    }
+    get packetCounterFlagBits () {
+        return 1;
     }
     isPacketCounter () {
         return this.C_;
@@ -69,12 +75,18 @@ class mmtpPacket {
     get fecType () {
         return this.FEC_;
     }
+    get fecTypeBits () {
+        return 2;
+    }
 
     set privateUserDataFlag (p) {
         this.P_ = p;
     }
     get privateUserDataFlag () {
         return this.P_;
+    }
+    get privateUserDataFlagBits () {
+        return 1;
     }
     isPrivateUserData () {
         return this.P_;
@@ -86,8 +98,15 @@ class mmtpPacket {
     get extensionFlag () {
         return this.E_;
     }
+    get extensionFlagBits () {
+        return 1;
+    }
     isExtension () {
         return this.E_;
+    }
+
+    get reservedBits () {
+        return 10;
     }
 
     set packetID (id) {
@@ -96,12 +115,18 @@ class mmtpPacket {
     get packetID () {
         return this.packet_id_;
     }
+    get packetIDBytes () {
+        return 2;
+    }
 
     set packetSequenceNumber (packet_sequence_number) {
         this.packet_sequence_number_ = packet_sequence_number;
     }
     get packetSequenceNumber () {
         return this.packet_sequence_number_;
+    }
+    get packetSequenceNumberBytes () {
+        return 4;
     }
 
     set timestamp (ts) {
@@ -110,6 +135,9 @@ class mmtpPacket {
     get timestamp () {
         return this.timestamp_;
     }
+    get timestampBytes () {
+        return 4;
+    }
 
     set packetCounter (packet_counter) {
         this.packet_counter_ = packet_counter;
@@ -117,12 +145,28 @@ class mmtpPacket {
     get packetCounter () {
         return this.packet_counter_;
     }
+    get packetCounterBytes () {
+        if (this.C_) {
+            return 4;
+        }
+        else {
+            return 0;
+        }
+    }
 
     set private_user_data (data) {
         this.private_user_data_ = data;
     }
     get private_user_data () {
         return this.private_user_data_;
+    }
+    get private_user_dataBytes () {
+        if (this.P_) {
+            return 2;
+        }
+        else {
+            return 0;
+        }
     }
 
     set payload_data (data) {
@@ -138,12 +182,28 @@ class mmtpPacket {
     get source_FEC_payload_ID () {
         return this.source_FEC_payload_ID_;
     }
+    get source_FEC_payload_ID_Bytes () {
+        if (this.FEC_ === 0x01) {
+            return 4;
+        }
+        else {
+            return 0;
+        }
+    }
 
     set extType (type) {
         this.ext_type_ = type;
     }
     get extType () {
         return this.ext_type_;
+    }
+    get extTypeBytes () {
+        if (this.this.E_) {
+            return 2;
+        }
+        else {
+            return 0;
+        }
     }
 
     set extLength (len) {
@@ -152,12 +212,28 @@ class mmtpPacket {
     get extLength () {
         return this.ext_length_;
     }
+    get extLengthBytes () {
+        if (this.this.E_) {
+            return 2;
+        }
+        else {
+            return 0;
+        }
+    }
 
     set ext_header_extension_value (value) {
         this.ext_header_extension_value_ = value;
     }
     get ext_header_extension_value () {
         return this.ext_header_extension_value_;
+    }
+    get ext_header_extension_valueBytes () {
+        if (this.this.E_) {
+            return 4;
+        }
+        else {
+            return 0;
+        }
     }
 }
 module.exports = mmtpPacket;

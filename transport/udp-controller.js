@@ -25,7 +25,7 @@ class UDPController {
         });
 
         this.udpSock.on("message", (msg, rinfo) => {
-            console.log("server got: ${msg} from ${rinfo.address}:${rinfo.port}");
+            console.log("server got: "+msg+" from "+rinfo.address+":"+rinfo.port);
             if (this.onRecv !== null) {
                 this.onRecv(msg, rinfo);
             }
@@ -51,10 +51,10 @@ class UDPController {
     }
 
     sendUDPSock (data, port, ipAddr) {
-        if (port === null || port === undefined || ipAddr === null || ipAddr === undefined) {
+        if (port === null || port === undefined || ipAddr === null || ipAddr === undefined || data === undefined) {
             return false;
         }
-        console.log("udp controller - send - port: "+port+", addr: "+ipAddr);
+        console.log("udp controller - send - port: "+port+", addr: "+ipAddr+", data:");
         this.udpSock.send(data, port, ipAddr, (err) => {
             if (err !== null) {
                 console.log("sendUDPSock - "+err);

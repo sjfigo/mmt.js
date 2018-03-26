@@ -48,7 +48,14 @@ class mmtpSender {
         console.log("mmtManager - onRecv - chunk: " +chunk);
         let port = parseInt(chunk.toString());
         if (port !== null && port !== undefined) {
-            this.clientPort_ = port;
+            that.clientPort_ = port;
+            if (that.greenLight) {
+                console.log("Go to green light");
+                that.greenLight(that.id_);
+            }
+            else {
+                console.log("red light");
+            }
         }
         /*if (chunk.compare(Buffer.from("mmt hello")) == 0) {
             console.log("recv data is correct");
@@ -88,9 +95,11 @@ class mmtpSender {
         let k = 0;
         let mpuNum = that.mpuPathList.length;
         let movieFragmentCnt = 0;
+        let ret = false;
 
         console.log("send - begin");
         console.log("Number of MPU - " + mpuNum);
+        console.log("port - " + that.clientPort_ + " / addr - " + that.clientAddr_);
 
         for (i=0; i<mpuNum; i++) {
             // Read MPU
@@ -135,22 +144,27 @@ class mmtpSender {
                     mpuFrag.data.mpufData.copy(mpuFragBuf, mfuHeader.totalSize, 0, mpuFragLen);
                 }
                 else {
-                    mpuFragBuf = mpuFrag.data;
+                    mpuFragBuf = mpuFrag.data.mpufData;
                 }
 
                 var payloadizer = new Payloadizer();
-                payloadizer.addDataUnit(mpuFrag.type, mpuFragBuf);
-                //console.log("Payloadize finish");
+                ret = payloadizer.addDataUnit(mpuFrag.type, mpuFragBuf);
+                if (ret == false) {
+                    console.log("Fail addDataUnit");
+                    continue;
+                }
+                payloadizer.payloadize();
+                console.log("Payloadize finish");
 
                 // Packetize
                 that.mmtpPacketizer.setFragment(mpuFragBuf, that.fragmentCnt);
                 that.fragmentCnt ++;
-                //console.log("Packetize finish");
+                console.log("Packetize finish");
 
                 // Send
                 let packet = that.mmtpPacketizer.packet;
                 while (packet !== null) {
-                    //console.log("send packet");
+                    //console.log("send packet "+packet);
                     that.udpSock.sendUDPSock(packet, that.clientPort_, that.clientAddr_);
                     packet = that.mmtpPacketizer.packet;
                 }

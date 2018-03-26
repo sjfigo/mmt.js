@@ -12,12 +12,14 @@ class mmtpPacketizer {
     }
 
     get packet () {
-        if (this.packetList.length > 0) {
-            if (packetIterator > 100 && this.packetList.length > this.packetIterator+1) {
+        console.log("getPacket - "+this.packetList.length);
+        if (this.packetList.length - this.packetIterator > 0) {
+            if (this.packetIterator > 100 && this.packetList.length > this.packetIterator+1) {
                 this.packetList.splice(0, this.packetIterator);
                 this.packetIterator = 0;
             }
             let packet = this.packetList[this.packetIterator++];
+            console.log(packet);
             return packet;
         }
         else {
@@ -77,6 +79,7 @@ class mmtpPacketizer {
             packet.source_FEC_payload_ID = 0x00; //???
         }
 
+        console.log("fragSize - "+fragSize);
         for (i = 0; i<fragSize; i+=payloadMaxSize) {
             packet.packetSequenceNumber = this.packetSeqNum;
             this.packetSeqNum ++;
@@ -95,7 +98,9 @@ class mmtpPacketizer {
             let payloadData = Buffer.allocUnsafe(copyLen).fill(0x00);
             fragment.copy(payloadData, 0, i, i + copyLen);
             packet.payload_data = payloadData;
-            this.packetList.push(this.packetize(packet, copyLen));
+            let packetData = this.packetize(packet, copyLen);
+            this.packetList.push(packetData);
+            console.log("packetize - "+i+" "+fragSize+" "+payloadMaxSize+" "+packetData);
         }
     }
 
@@ -103,57 +108,66 @@ class mmtpPacketizer {
         let iterator = 0;
         let pktData = Buffer.allocUnsafe(size).fill(0x00);
         
-        let flagBuf = Buffer.allocUnsafe(2).fill(   (0x0000 | packet.version) << 14 |
-                                                    (0x0000 | packet.packetCounterFlag) << 13 |
-                                                    (0x0000 | packet.fecType) << 12 |
-                                                    (0x0000 | packet.privateUserDataFlag) << 10 |
-                                                    (0x0000 | packet.extensionFlag) << 9 |
-                                                    (0x0000));
-        flagBuf.copy(pktData, iterator, 0, 2);
-        iterator += 2;
+        let flagBufLen = packet.versionBits + packet.packetCounterFlagBits + packet.fecTypeBits + packet.privateUserDataFlagBits + packet.extensionFlagBits + packet.reservedBits;
+        let flagBufShiftLen = flagBufLen - packet.versionBits;
+        flagBufLen /= 8; // To bytes
+        let flagBuf = 0x00;
+        flagBuf |= packet.version << flagBufShiftLen;
+        flagBufShiftLen -= packet.packetCounterFlagBits;
+        flagBuf |= packet.packetCounterFlag << flagBufShiftLen;
+        flagBufShiftLen -= packet.fecTypeBits;
+        flagBuf |= packet.fecType << flagBufShiftLen;
+        flagBufShiftLen -= packet.privateUserDataFlagBits; 
+        flagBuf |= packet.privateUserDataFlag << flagBufShiftLen;
+        flagBufShiftLen -= packet.extensionFlagBits;
+        flagBuf |= packet.extensionFlag << flagBufShiftLen;
+        console.log("packetize: " + size + "  " + flagBuf + "  " + flagBufLen);
+        pktData.writeUIntBE(flagBuf, iterator, flagBufLen);
+        iterator += flagBufLen;
         
-        let pktIdBuf = Buffer.allocUnsafe(2).fill(0x0000 | packet.packetID);
-        pktIdBuf.copy(pktData, iterator, 0, 2);
-        iterator += 2;
+        // Set packet id
+        pktData.writeUInt16BE(packet.packetID, iterator, packet.packetIDBytes);
+        iterator += packet.packetIDBytes;
         
-        let pktSeqBuf = Buffer.allocUnsafe(4).fill(0x00000000 | packet.packetSequenceNumber);
-        pktSeqBuf.copy(pktData, iterator, 0, 4);
-        iterator += 4;
+        // Set packet sequence number
+        pktData.writeUIntBE(packet.packetSequenceNumber, iterator, packet.packetSequenceNumberBytes);
+        console.log("packetizer - packet seq num - " + packet.packetSequenceNumber + " - " +pktData.readUInt32LE(iterator));
+        iterator += packet.packetSequenceNumberBytes;
         
-        let tsBuf = Buffer.allocUnsafe(4).fill(0x00000000 | packet.timestamp);
-        tsBuf.copy(pktData, iterator, 0, 4);
-        iterator += 4;
+        // Set timestamp
+        pktData.writeUIntBE(packet.timestamp, iterator, packet.timestampBytes);
+        iterator += packet.timestampBytes;
         
-        let pktCntBuf = null;
         if (packet.packetCounterFlag) {
-            pktCntBuf = Buffer.allocUnsafe(4).fill(0x00000000 | packet.packetCounter);
-            pktCntBuf.copy(pktData, iterator, 0, 4);
-            iterator += 4;
+            // Set packet counter
+            pktData.writeUIntBE(packet.packetCounter, iterator, packet.packetCounterBytes);
+            iterator += packet.packetCounterBytes;
         }
         
-        let priUDBuf = null;
         if (packet.privateUserDataFlag) {
-            priUDBuf = Buffer.allocUnsafe(2).fill(0x0000 | packet.private_user_data);
-            priUDBuf.copy(pktData, iterator, 0, 2);
-            iterator += 2;
+            // Set private user data
+            pktData.writeUIntBE(packet.private_user_data, iterator, packet.private_user_dataBytes);
+            iterator += packet.private_user_dataBytes;
         }
         
-        let payloadData = packet.payload_data;
-        payloadData.copy(pktData, iterator, 0, payloadData.length);
-        iterator += payloadData.length;
+        // Set payload
+        packet.payload_data.copy(pktData, iterator, 0, packet.payload_data.length);
+        iterator += packet.payload_data.length;
         
-        let fecIdBuf = null;
         if (packet.fecType === 0x01) { // Only use AL-FEC protection
-            fecIdBuf = Buffer.allocUnsafe(4).fill(0x00000000 | packet.source_FEC_payload_ID);
-            fecIdBuf.copy(pktData, iterator, 0, 4);
-            iterator += 4;
+            // Set AL-FEC payload ID
+            pktData.writeUIntBE(packet.source_FEC_payload_ID, iterator, packet.source_FEC_payload_ID_Bytes);
+            iterator += packet.source_FEC_payload_ID_Bytes;
         }
         
-        let extBuf = null;
         if (packet.extensionFlag) {
-            extBuf = Buffer.allocUnsafe(16).fill(   (0x0000000000000000 | packet.extType) << 48 |
-                                                    (0x0000000000000000 | packet.extLength) << 32 |
-                                                    (0x0000000000000000 | packet.ext_header_extension_value));
+            // Set extension type/length/value
+            pktData.writeUIntBE(packet.extType, iterator, packet.extTypeBytes);
+            iterator += packet.extTypeBytes;
+            pktData.writeUIntBE(packet.extLength, iterator, packet.extLengthBytes);
+            iterator += packet.extLengthBytes;
+            pktData.writeUIntBE(packet.ext_header_extension_value, iterator, packet.ext_header_extension_valueBytes);
+            iterator += packet.ext_header_extension_valueBytes;
         }
         
         return pktData;

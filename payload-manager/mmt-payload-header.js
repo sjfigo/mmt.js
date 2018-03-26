@@ -124,6 +124,9 @@ class mmtPayloadHeader {
     get type () {
         return this.type_;
     }
+    get typeBytes () {
+        return 1;
+    }
 
     /**
      * 00 - number of data units >= 1
@@ -137,6 +140,9 @@ class mmtPayloadHeader {
     get fragmentationIndicator () {
         return this.f_i_;
     }
+    get fragmentationIndicatorBits () {
+        return 2;
+    }
 
     /**
      * 1 - aggrated this packet
@@ -146,6 +152,9 @@ class mmtPayloadHeader {
     }
     get aggregationFlag () {
         return this.A_;
+    }
+    get aggregationFlagBits () {
+        return 1;
     }
     isAggretated () {
     return this.A_;
@@ -160,6 +169,9 @@ class mmtPayloadHeader {
     get randomAccessPointFlag () {
         return this.R_;
     }
+    get randomAccessPointFlagBits () {
+        return 1;
+    }
     isRandomAccessPoint () {
         return this.R_;
     }
@@ -169,6 +181,9 @@ class mmtPayloadHeader {
     }
     get mpuSequenceNumberFlag () {
         return this.M_;
+    }
+    get mpuSequenceNumberFlagBits () {
+        return 1;
     }
     isMpuSequenceNumberFlag () {
         return this.M_;
@@ -180,6 +195,9 @@ class mmtPayloadHeader {
     get S () {
         return this.S_;
     }
+    get S_Bits () {
+        return 3;
+    }
 
     set fragmentCounter (frag_count) {
         this.frag_count_ = frag_count;
@@ -187,12 +205,23 @@ class mmtPayloadHeader {
     get fragementCounter () {
         return this.frag_count_;
     }
+    get fragementCounterBytes () {
+        return 1;
+    }
 
     set mpuSequenceNumber (mpu_sequence_number) {
         this.MPU_sequence_number_ = mpu_sequence_number;
     }
     get mpuSequenceNumber () {
         return this.MPU_sequence_number_;
+    }
+    get mpuSequenceNumberBytes () {
+        if (this.M_) {
+            return 4;
+        }
+        else {
+            return 0;
+        }
     }
 
     set DataUnit (du) {

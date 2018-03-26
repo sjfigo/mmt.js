@@ -41,16 +41,16 @@ class mmtpReceiver {
     }
 
     onRecv (packet, info) {
-        console.log("Recv packet - size: " + packet.size);
-        this.mmtpDepack.packet = packet;
-        let stPacket = this.mmtpDepack.packet;
+        console.log("Recv packet - size: " + info.size);
+        that.mmtpDepack.packet = packet;
+        let stPacket = that.mmtpDepack.packet;
         if (stPacket !== null) {
-            this.udpBuffer.setPacket(stPacket, stPacket.packetSequenceNumber);
-            this.ableAssemblyMPUFrag[stPacket.packetID]++;
+            that.udpBuffer.setPacket(stPacket, stPacket.packetSequenceNumber);
+            that.ableAssemblyMPUFrag[stPacket.packetID]++;
             if (stPacket.packetCounterFlag) {
                 // packetCounter is number of packet of same packet id.
-                if (this.ableAssemblyMPUFrag[stPacket.packetID] === stPacket.packetCounter) {
-                    this.assemblyMPUFragId.push(stPacket.packetID);
+                if (that.ableAssemblyMPUFrag[stPacket.packetID] === stPacket.packetCounter) {
+                    that.assemblyMPUFragId.push(stPacket.packetID);
                 }
             }
         }

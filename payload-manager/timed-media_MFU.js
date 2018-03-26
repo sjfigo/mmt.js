@@ -14,16 +14,12 @@ class TimedMediaMFUHeader {
 
     make () {
         let mfuHeader = Buffer.allocUnsafe(this.size_).fill(0x00);
-        let movie_fragment_sequence_number = Buffer.allocUnsafe(4).fill(0x00 | this.movie_fragment_sequence_number_);
-        let sample_number = Buffer.allocUnsafe(4).fill(0x00 | this.sample_number_);
-        let offset = Buffer.allocUnsafe(2).fill(0x00 | this.offset_);
-        let priorityNdep_counter = Buffer.allocUnsafe(2).fill(((0x00 | this.priority_) << 9) | (0x00 | this.dep_counter_));
-        //let dep_counter = Buffer.allocUnsafe(1).fill(this.dep_counter_);
-        movie_fragment_sequence_number.copy(mfuHeader, 0, 0, 4);
-        sample_number.copy(mfuHeader, 4, 0, 4);
-        offset.copy(mfuHeader, 8, 0, 2);
-        priorityNdep_counter.copy(mfuHeader, 10, 0, 2);
-
+        
+        mfuHeader.writeUIntBE(this.movie_fragment_sequence_number_, 0, 4);
+        mfuHeader.writeUIntBE(this.sample_number_, 4, 4);
+        mfuHeader.writeUIntBE(this.offset_, 8, 2);
+        mfuHeader.writeUIntBE(this.priority_, 10, 2);
+        
         return mfuHeader;
     }
 

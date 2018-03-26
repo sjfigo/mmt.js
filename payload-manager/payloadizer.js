@@ -32,7 +32,6 @@ class payloadizer {
         let payloadIterator = 0;
         let payloadHeader = new MMTPayloadHeader();
         let payloadHeaderObj = null;
-        let duLenBuf = null;
 
         if (this.duList_.length < this.duListIterator_) {
             console.log("No Data unit")
@@ -48,15 +47,15 @@ class payloadizer {
         payloadHeader.aggregationFlag = this.be_aggregate;
         payloadHeader.randomAccessPointFlag = 0x01; // I-Frame
         payloadHeader.mpuSequenceNumberFlag = 0x01;
-        payloadHeader.fragementCounter = 0;
+        payloadHeader.fragmentCounter = 0;
         payloadHeaderObj = this.setPayloadHeader(payloadHeader);
 
         payload = Buffer.allocUnsafe(du.length + 2 + payloadHeaderObj.len).fill(0x00);
         payloadHeaderObj.buf.copy(payload, payloadIterator, 0, payloadHeaderObj.len);
         payloadIterator += payloadHeaderObj.len;
-        duLenBuf = Buffer.allocUnsafe(2).fill(0x00 | du.length);
-        duLenBuf.copy(payload, payloadIterator, 0, 2);
+        payload.writeUIntBE(du.length, payloadIterator, 2);
         payloadIterator += 2;
+        //console.log("du.data - " +du.data);
         du.data.copy(payload, payloadIterator, 0, du.length);
         payloadIterator += du.length;
 
@@ -77,27 +76,36 @@ class payloadizer {
 
     setPayloadHeader (payloadHeader) {
         let payloadHeaderBuf = null;
+        let payloadHeaderLen = payloadHeader.typeBytes + payloadHeader.fragmentationIndicatorBits + payloadHeader.aggregationFlagBits + payloadHeader.randomAccessPointFlagBits + payloadHeader.mpuSequenceNumberFlagBits + payloadHeader.S_Bits + payloadHeader.mpuSequenceNumberBytes + payloadHeader.fragementCounterBytes;
         let payloadIter = 0;
-        let typeBuffer = Buffer.allocUnsafe(1).fill(payloadHeader.type);
-        let flagsBuffer = Buffer.allocUnsafe(1).fill(((0x00 | payloadHeader.fragmentationIndicator) << 6) | 
-                                                     ((0x00 | payloadHeader.aggregationFlag)        << 5) | 
-                                                     ((0x00 | payloadHeader.randomAccessPointFlag)  << 4) |
-                                                     ((0x00 | payloadHeader.mpuSequenceNumberFlag)  << 3) |
-                                                      (0x00 | payloadHeader.S));
-        let seqNumBuffer = Buffer.allocUnsafe(4).fill(payloadHeader.mpuSequenceNumber);
-        let fragCntBuffer = Buffer.allocUnsafe(1).fill(0x00 | payloadHeader.fragementCounter);
+        payloadHeaderBuf = Buffer.allocUnsafe(payloadHeaderLen).fill(0x00);
+        
+        payloadHeaderBuf.writeUIntBE(payloadHeader.type, payloadIter, payloadHeader.typeBytes);
+        payloadIter += payloadHeader.typeBytes;
 
-        payloadHeaderBuf = Buffer.allocUnsafe(1 + 1 + 4 + 1).fill(0x00);
-        typeBuffer.copy(payloadHeaderBuf, payloadIter, 0, 1);
-        payloadIter += 1;
-        flagsBuffer.copy(payloadHeaderBuf, payloadIter, 0, 1);
-        payloadIter += 1;
+        let flagsBufferLen = payloadHeader.fragmentationIndicatorBits + payloadHeader.aggregationFlagBits + payloadHeader.randomAccessPointFlagBits + payloadHeader.mpuSequenceNumberFlagBits + payloadHeader.S_Bits;
+        let flagsBufferShift = flagsBufferLen - payloadHeader.fragmentationIndicatorBits;
+        flagsBufferLen /= 8; // To Bytes
+        let flagsBuffer = 0x00;
+        flagsBuffer |= (payloadHeader.fragmentationIndicator << flagsBufferShift);
+        flagsBufferShift -= payloadHeader.aggregationFlagBits;
+        flagsBuffer |= (payloadHeader.aggregationFlag << flagsBufferShift);
+        flagsBufferShift -= payloadHeader.randomAccessPointFlagBits;
+        flagsBuffer |= (payloadHeader.randomAccessPointFlag << flagsBufferShift);
+        flagsBufferShift -= payloadHeader.mpuSequenceNumberFlagBits;
+        flagsBuffer |= (payloadHeader.mpuSequenceNumberFlag << flagsBufferShift);
+        flagsBufferShift -= payloadHeader.S_Bits;
+        flagsBuffer |= (payloadHeader.S << flagsBufferShift);
+        payloadHeaderBuf.writeUIntBE(flagsBuffer, payloadIter, flagsBufferLen);
+        payloadIter += flagsBufferLen;
+
         if (payloadHeader.mpuSequenceNumberFlag) {
-            seqNumBuffer.copy(payloadHeaderBuf, payloadIter, 0, 4);
-            payloadIter += 4;
+            payloadHeaderBuf.writeUIntBE(payloadHeader.mpuSequenceNumber, payloadIter, payloadHeader.mpuSequenceNumberBytes);
+            payloadIter += payloadHeader.mpuSequenceNumberBytes;
         }
-        fragCntBuffer.copy(payloadHeaderBuf, payloadIter, 0, 1);
-        payloadIter += 1;
+
+        payloadHeaderBuf.writeUIntBE(payloadHeader.fragementCounter, payloadIter, payloadHeader.fragementCounterBytes);
+        payloadIter += payloadHeader.fragementCounterBytes;
 
         return {buf: payloadHeaderBuf, len:payloadIter};
     }
@@ -146,12 +154,16 @@ class payloadizer {
      * @param {*} du : MPU / Fragmented MPU / Singnaling message / repair symbol / Generic object
      */
     addDataUnit (type, du) {
-        this.duList_.push({
-            type: type,
-            data : du,
-            length : du.length
-        });
-        this.storedDUcnt_ ++;
+        if (type !== null && du !== null) {
+            this.duList_.push({
+                type: type,
+                data : du,
+                length : du.length
+            });
+            this.storedDUcnt_ ++;
+            return true;
+        }
+        return false;
     }
 
     get payload () {

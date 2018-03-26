@@ -5,7 +5,9 @@ class NonTimedMediaMFUHeader {
     }
 
     make() {
-        return Buffer.allocUnsafe(this.size_).fill(this.item_ID_);
+        let buf = Buffer.allocUnsafe(this.size_).fill(0x00);
+        buf.writeUIntBE(this.item_ID_, 0, this.size_);
+        return buf;
     }
 
     get totalSize () {

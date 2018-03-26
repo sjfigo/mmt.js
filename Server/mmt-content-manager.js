@@ -5,12 +5,12 @@ class mmtContentManager {
         this.assetList = [];
 
         let asset = [];
-        asset.push("../mpu-manager/mpus/000.mp4");
-        asset.push("../mpu-manager/mpus/001.mp4");
-        asset.push("../mpu-manager/mpus/002.mp4");
-        asset.push("../mpu-manager/mpus/003.mp4");
-        asset.push("../mpu-manager/mpus/004.mp4");
-        asset.push("../mpu-manager/mpus/005.mp4");
+        asset.push("/Users/daehee/Git/MMT-WebPlayer/mpu-manager/mpus/000.mp4");
+        asset.push("/Users/daehee/Git/MMT-WebPlayer/mpu-manager/mpus/001.mp4");
+        asset.push("/Users/daehee/Git/MMT-WebPlayer/mpu-manager/mpus/002.mp4");
+        asset.push("/Users/daehee/Git/MMT-WebPlayer/mpu-manager/mpus/003.mp4");
+        asset.push("/Users/daehee/Git/MMT-WebPlayer/mpu-manager/mpus/004.mp4");
+        asset.push("/Users/daehee/Git/MMT-WebPlayer/mpu-manager/mpus/005.mp4");
 
         this.assetList.push({
             id : 0,
