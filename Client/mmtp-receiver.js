@@ -46,10 +46,16 @@ class mmtpReceiver {
         let stPacket = that.mmtpDepack.packet;
         if (stPacket !== null) {
             that.udpBuffer.setPacket(stPacket, stPacket.packetSequenceNumber);
+            if (that.ableAssemblyMPUFrag[stPacket.packetID] === undefined) {
+                that.ableAssemblyMPUFrag[stPacket.packetID] = 0;
+            }
             that.ableAssemblyMPUFrag[stPacket.packetID]++;
+            console.log("that.ableAssemblyMPUFrag[stPacket.packetID]: " + that.ableAssemblyMPUFrag[stPacket.packetID]);
+            console.log("stPacket.packetCounter: "+ stPacket.packetCounter);
             if (stPacket.packetCounterFlag) {
                 // packetCounter is number of packet of same packet id.
                 if (that.ableAssemblyMPUFrag[stPacket.packetID] === stPacket.packetCounter) {
+                    console.log("Pushed to assemblyMPUFragId - " + stPacket.packetID);
                     that.assemblyMPUFragId.push(stPacket.packetID);
                 }
             }

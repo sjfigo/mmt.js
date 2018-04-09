@@ -39,8 +39,8 @@ class depayloadizer {
 
         buf = fragment.readUInt8BE(iterator);
         iterator += 1;
-        mfuHeader.fragmentType((buf | 0xFE) >> 1);
-        if (buf | 0x01) { // Non-timed media
+        mfuHeader.fragmentType((buf & 0xFE) >> 1);
+        if (buf & 0x01) { // Non-timed media
             mfuHeader.setNonTimed();
 
             mfuHeader.nonTimedMediaItemID = fragment.readUInt32BE(iterator);
@@ -79,11 +79,11 @@ class depayloadizer {
         buf = payloadData.readUInt8BE(iterator);
         iterator += 1;
 
-        payload.fragmentationIndicator = (buf | 0xC0) >> 6;
-        payload.aggregationFlag = (buf | 0x20) >> 5;
-        payload.randomAccessPointFlag = (buf | 0x10) >> 4;
-        payload.mpuSequenceNumberFlag = (buf | 0x08) >> 3;
-        payload.S = (buf | 0x07);
+        payload.fragmentationIndicator = (buf & 0xC0) >> 6;
+        payload.aggregationFlag = (buf & 0x20) >> 5;
+        payload.randomAccessPointFlag = (buf & 0x10) >> 4;
+        payload.mpuSequenceNumberFlag = (buf & 0x08) >> 3;
+        payload.S = (buf & 0x07);
 
         if (payload.mpuSequenceNumberFlag) {
             payload.mpuSequenceNumber = payloadData.readUInt32BE(iterator);

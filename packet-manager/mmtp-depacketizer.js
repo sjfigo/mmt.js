@@ -54,11 +54,11 @@ class mmtpDepacketizer {
         let payloadEnd = pktBuf.length;
 
         let flags = pktBuf.readUInt16BE(iterator);
-        packet.version = (flags | 0xC000) >>> 14;
-        packet.packetCounterFlag = (flags | 0x2000) >>> 13;
-        packet.fecType = (flags | 0x1800) >>> 12;
-        packet.privateUserDataFlag = (flags | 0x0400) >>> 10;
-        packet.extensionFlag = (flags | 0x0200) >>> 9;
+        packet.version = (flags & 0xC000) >>> 14;
+        packet.packetCounterFlag = (flags & 0x2000) >>> 13;
+        packet.fecType = (flags & 0x1800) >>> 12;
+        packet.privateUserDataFlag = (flags & 0x0400) >>> 10;
+        packet.extensionFlag = (flags & 0x0200) >>> 9;
         iterator += 2;
 
         packet.packetID = pktBuf.readUInt16BE(iterator);
