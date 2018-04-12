@@ -110,7 +110,7 @@ class mmtpSender {
             // MPU Fragmentation
             let mpuDissolver = new MPUDissolver (mpuData, mpuData.length);
             let mpuFrags = mpuDissolver.mpuFragments;
-            console.log("MPU fragmentation finish");
+            console.log("MPU fragmentation finish. number of fragment is " + mpuFrags.length);
 
             let mpuFragCnt = mpuFrags.length;
             for (j=0; j<mpuFragCnt; j++) {
@@ -120,8 +120,9 @@ class mmtpSender {
                 if (mpuFrag.type === MPUFragmentType.moof) {
                     movieFragmentCnt ++;
                 }
+                
                 if (mpuFrag.type === MPUFragmentType.mdat) { // MFU 
-                    let mpuFragLen = mpuFrag.length;
+                    let mpuFragLen = mpuFrag.data.length;
                     let mfuHeader = null;
                     let mfuHeaderBuf = null;
                     
@@ -141,10 +142,12 @@ class mmtpSender {
                     mfuHeaderBuf = mfuHeader.make();
                     mpuFragBuf = Buffer.allocUnsafe(mpuFragLen + mfuHeader.totalSize).fill(0x00);
                     mfuHeaderBuf.copy(mpuFragBuf, 0, 0, mfuHeader.totalSize);
-                    mpuFrag.data.mpufData.copy(mpuFragBuf, mfuHeader.totalSize, 0, mpuFragLen);
+                    mpuFrag.data.copy(mpuFragBuf, mfuHeader.totalSize, 0, mpuFragLen);
+                    console.log("sender - MPU fragment type is mdat, header size: " + mfuHeader.totalSize + ", data size: " + mpuFragLen + " - " + mpuFragBuf);
                 }
                 else {
-                    mpuFragBuf = mpuFrag.data.mpufData;
+                    mpuFragBuf = mpuFrag.data;
+                    console.log("sender - MPU fragment type is " + mpuFrag.type + " - " + mpuFragBuf + " - " + mpuFragBuf.length);
                 }
 
                 var payloadizer = new Payloadizer();

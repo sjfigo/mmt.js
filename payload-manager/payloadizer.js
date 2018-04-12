@@ -53,6 +53,7 @@ class payloadizer {
         payload = Buffer.allocUnsafe(du.length + 2 + payloadHeaderObj.len).fill(0x00);
         payloadHeaderObj.buf.copy(payload, payloadIterator, 0, payloadHeaderObj.len);
         payloadIterator += payloadHeaderObj.len;
+        console.log("Index out of range? " + du.length + " - " + payloadIterator);
         payload.writeUIntBE(du.length, payloadIterator, 2);
         payloadIterator += 2;
         //console.log("du.data - " +du.data);
@@ -154,7 +155,7 @@ class payloadizer {
      * @param {*} du : MPU / Fragmented MPU / Singnaling message / repair symbol / Generic object
      */
     addDataUnit (type, du) {
-        if (type !== null && du !== null) {
+        if (type !== null && du !== null && du !== undefined) {
             this.duList_.push({
                 type: type,
                 data : du,

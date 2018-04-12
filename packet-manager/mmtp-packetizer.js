@@ -49,11 +49,12 @@ class mmtpPacketizer {
             payloadMaxSize += 4;
         }
         else { // It is incremented by the sending of an MMT packet and is different from the value packet_id.
-            packet.packetCounter = this.packetCounter;
             if (packet.packetID != this.prePktId) {
                 this.packetCounter ++;
                 this.prePktId = packet.packetID;
             }
+            packet.packetCounter = this.packetCounter;
+            console.log("Packetizer - packet counter: " + packet.packetCounter + ", packet id: " + packet.packetID);            
         }
 
         if (!packet.privateUserDataFlag) {

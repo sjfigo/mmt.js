@@ -181,10 +181,7 @@ class MPUDissolver {
                     break;
                 }
     
-                mpuFragArr.push({
-                    type : MPU_Fragment_Type.mdat,
-                    data : mpuFrag
-                });
+                mpuFragArr.push(mpuFrag);
 
                 mpuFragCnt++;
             }
@@ -195,10 +192,7 @@ class MPUDissolver {
                     break;
                 }
     
-                mpuFragArr.push({
-                    type : MPU_Fragment_Type.ftyp,
-                    data : mpuFrag
-                });
+                mpuFragArr.push(mpuFrag);
 
                 mpuFragCnt++;
             }
@@ -209,10 +203,7 @@ class MPUDissolver {
                     break;
                 }
     
-                mpuFragArr.push({
-                    type : MPU_Fragment_Type.moof,
-                    data : mpuFrag
-                });
+                mpuFragArr.push(mpuFrag);
 
                 mpuFragCnt++;
             }
@@ -227,7 +218,7 @@ class MPUDissolver {
     } 
 
     /**
-     * mdat box parsing
+     * ftyp box parsing
      */ 
     getMPUMeta () {
         let mpuFrag = new MPUFragment();
@@ -281,7 +272,7 @@ class MPUDissolver {
     }
 
     /**
-     * ftyp box parsing
+     * moof box parsing
      */ 
     getMovieFragMeta (boxSize) {
         let mpuFrag = new MPUFragment();
@@ -339,8 +330,9 @@ class MPUDissolver {
         //console.log("buffercopy check1: "+mpuFrag.data.compare(this.mpu.data, this.mpu.hint_sample_offset, this.mpu.hint_sample_offset+hintSampleSize, 0, hintSampleSize));
         mpuFrag.data = this.bufferCopy(mpuFrag.data, hintSampleSize, this.mpu.data, this.mpu.video_sample_offset, videoSampleSize);
         //console.log("buffercopy check2: "+mpuFrag.data.compare(this.mpu.data, this.mpu.video_sample_offset, this.mpu.video_sample_offset+videoSampleSize, hintSampleSize, hintSampleSize+videoSampleSize));
-        let temp = this.get4ByteBuffer(mpuFrag.data, 4);
+        //let temp = this.get4ByteBuffer(mpuFrag.data, 4);
         //console.log("getMFU - type1: "+temp);
+        console.log("mdat size is " + mpuFrag.data.length);
 
         mpuFrag.type = MPU_Fragment_Type.mdat;
         //console.log("mpuFrag.type: "+mpuFrag.type);
