@@ -6,6 +6,7 @@ var MPUFragmentType = require("./../mpu-manager/mmt-structure/mpu-fragment-type"
 var TimedMediaMFUHeader = require("./../payload-manager/timed-media_MFU");
 var NonTimedMediaMFUHeader = require("./../payload-manager/non-timed_media_MFU");
 var Payloadizer = require("./../payload-manager/payloadizer");
+var DUType = require("./../payload-manager/du-type");
 
 var that = null;
 
@@ -95,6 +96,7 @@ class mmtpSender {
         let k = 0;
         let mpuNum = that.mpuPathList.length;
         let movieFragmentCnt = 0;
+        var payloadizer = new Payloadizer(true, true, false, DUType.MPU_Fragment);
         let ret = false;
 
         console.log("send - begin");
@@ -150,8 +152,7 @@ class mmtpSender {
                     console.log("sender - MPU fragment type is " + mpuFrag.type + " - " + mpuFragBuf + " - " + mpuFragBuf.length);
                 }
 
-                var payloadizer = new Payloadizer();
-                ret = payloadizer.addDataUnit(mpuFrag.type, mpuFragBuf);
+                ret = payloadizer.addDataUnit(mpuFrag.type, mpuFragBuf, i);
                 if (ret == false) {
                     console.log("Fail addDataUnit");
                     continue;
