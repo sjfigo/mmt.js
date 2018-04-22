@@ -106,7 +106,7 @@ class mmtpPacket {
     }
 
     get reservedBits () {
-        return 10;
+        return 9;
     }
 
     set packetID (id) {

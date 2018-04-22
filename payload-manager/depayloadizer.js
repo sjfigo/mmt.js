@@ -93,16 +93,12 @@ class depayloadizer {
         payload.fragementCounter = payloadData.readUInt8BE(iterator);
         iterator += 1;
 
-        if (payload.aggregationFlag) {
-            // DU가 여러개...
-        }
-        else {
-            payload.DU_length_ = payloadData.readUInt16BE(iterator);
+        while (iterator < payloadData.length) {
+            let duLen = payloadData.readUInt16BE(iterator);
             iterator += 2;
-            payload.DU_Payload_ = Buffer.allocUnsafe(duLen).fill(0x00);
-            payloadData.copy(payload.DU_Payload_, 0, iterator, iterator+duLen);
-            iterator += duLen;
-            //payload.DataUnit = {length: duLen, header or type ??: , payload: du};
+            let du = Buffer.allocUnsafe(duLen).fill(0x00);
+            du.copy(payloadData, iterator, 0, duLen);
+            payload.setDataUnit(du, duLen);
         }
 
         return {data: payload, size: iterator};

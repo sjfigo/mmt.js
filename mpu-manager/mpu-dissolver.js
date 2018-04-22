@@ -332,7 +332,7 @@ class MPUDissolver {
         //console.log("buffercopy check2: "+mpuFrag.data.compare(this.mpu.data, this.mpu.video_sample_offset, this.mpu.video_sample_offset+videoSampleSize, hintSampleSize, hintSampleSize+videoSampleSize));
         //let temp = this.get4ByteBuffer(mpuFrag.data, 4);
         //console.log("getMFU - type1: "+temp);
-        console.log("mdat size is " + mpuFrag.data.length);
+        //console.log("mdat size is " + mpuFrag.data.length);
 
         mpuFrag.type = MPU_Fragment_Type.mdat;
         //console.log("mpuFrag.type: "+mpuFrag.type);

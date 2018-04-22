@@ -9,8 +9,7 @@ class mmtPayloadHeader {
                 MPU_sequence_number,    // 32bits, Sequence number of the MPU
                 frag_count,             // 8bits, Number of payload containing fragments
                 DU_length,              // 16bits, data unit length, ref Aggregated
-                DU_Header,              // x bits, data unit header
-                DU_Payload              // x bits, data unit(timed media, non-timed media, )
+                DU_data                 // DU_length bits, data unit header and payload(timed media, non-timed media, )
                 ) 
     {
         this.packet = null;
@@ -24,12 +23,10 @@ class mmtPayloadHeader {
         this.MPU_sequence_number_ = MPU_sequence_number;
         this.frag_count_ = frag_count;
         this.DU_length_ = [];
-        this.DU_Header_ = [];
-        this.DU_Payload_ = [];
+        this.DU_data_ = [];
 
         this.DU_length_.push(DU_length);
-        this.DU_Header_.push(DU_Header);
-        this.DU_Payload_.push(DU_Payload);
+        this.DU_data_.push(DU_data);
     }
 
     /*
@@ -224,44 +221,29 @@ class mmtPayloadHeader {
         }
     }
 
-    set DataUnit (du) {
-        if (du.length  !== null && du.length  !== undefined && 
-            du.header  !== null && du.header  !== undefined && 
-            du.payload !== null && du.payload !== undefined)
+    setDataUnit (du, length) {
+        if (du !== null && length !== null)
         {
-            this.DU_length_.push(du.length);
-            this.DU_Header_.push(du.header);
-            this.DU_Payload_.push(du.payload);
+            this.DU_length_.push(length);
+            this.DU_data_.push(du);
         }
     }
     getDataUnit (n) {
         if (n !== undefined && this.DU_length_.length < n) {
-            return {lengths: this.DU_length_[n], headers: this.DU_Header_[n], payloads: this.DU_Payload_[n]};
+            return {lengths: this.DU_length_[n], datas: this.DU_data_[n]};
         }
         else {
             return null;
         }
     }
 
-    /*set DataUnitLength (du_length) {
-        this.DU_length_ = du_length;
-    }*/
-    get DataUnitLength () {
+    get DataUnitLengths () {
         return this.DU_length_;
     }
 
-    /*set DataUnitHeader (du_header) {
-        this.DU_Header_ = du_header;
-    }*/
-    get DataUnitHeader () {
-        return this.DU_Header_;
+    get DataUnitDatas () {
+        return this.DU_data_;
     }
 
-    /*set DataUnitPayload (du_payload) {
-        this.DU_Payload_ = du_payload;
-    }*/
-    get DataUnitPayload () {
-        return this.DU_Payload_;
-    }
 }
 module.exports = mmtPayloadHeader;

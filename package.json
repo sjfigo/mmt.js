@@ -1,0 +1,31 @@
+{
+  "name": "mmt.js",
+  "version": "0.0.1",
+  "description": "Web MMT player (MPEG Media Transport)",
+  "main": "app/index.js",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "ntp-client": "^0.5.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node Server/mmt-server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ted-WON/MMT-WebPlayer.git"
+  },
+  "keywords": [
+    "mpeg",
+    "mmt",
+    "node.js",
+    "multi-media",
+    "streaming"
+  ],
+  "author": "Daehee Won",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Ted-WON/MMT-WebPlayer/issues"
+  },
+  "homepage": "https://github.com/Ted-WON/MMT-WebPlayer#readme"
+}

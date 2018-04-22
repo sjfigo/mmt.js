@@ -12,6 +12,7 @@ var that = null;
 
 class mmtpSender {
     constructor (id, addr, port, server, greenLight) {
+        console.log("mmtpSender constructor");
         this.id_ = id;
         this.addr_ = addr;
         this.port_ = port;
@@ -145,11 +146,11 @@ class mmtpSender {
                     mpuFragBuf = Buffer.allocUnsafe(mpuFragLen + mfuHeader.totalSize).fill(0x00);
                     mfuHeaderBuf.copy(mpuFragBuf, 0, 0, mfuHeader.totalSize);
                     mpuFrag.data.copy(mpuFragBuf, mfuHeader.totalSize, 0, mpuFragLen);
-                    console.log("sender - MPU fragment type is mdat, header size: " + mfuHeader.totalSize + ", data size: " + mpuFragLen + " - " + mpuFragBuf);
+                    console.log("sender - MPU fragment type is mdat, header size: " + mfuHeader.totalSize + ", data size: " + mpuFragLen);
                 }
                 else {
                     mpuFragBuf = mpuFrag.data;
-                    console.log("sender - MPU fragment type is " + mpuFrag.type + " - " + mpuFragBuf + " - " + mpuFragBuf.length);
+                    console.log("sender - MPU fragment type is " + mpuFrag.type + " - " + mpuFragBuf.length);
                 }
 
                 ret = payloadizer.addDataUnit(mpuFrag.type, mpuFragBuf, i);
