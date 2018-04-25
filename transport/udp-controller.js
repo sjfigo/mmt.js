@@ -9,9 +9,9 @@ class UDPController {
         this.port_ = null;
     }
 
-    createUDPSock () {
+    createUDPSock (size) {
         var dgram = require("dgram");
-        this.udpSock = dgram.createSocket("udp6");
+        this.udpSock = dgram.createSocket({type:"udp6", recvBufferSize:1024*1024*5});
         
         this.udpSock.on("error", (err) => {
             if (err !== null) {
@@ -25,7 +25,7 @@ class UDPController {
         });
 
         this.udpSock.on("message", (msg, rinfo) => {
-            console.log("server got: "+msg+" from "+rinfo.address+":"+rinfo.port);
+            //console.log("server got: "+msg+" from "+rinfo.address+":"+rinfo.port);
             if (this.onRecv !== null) {
                 this.onRecv(msg, rinfo);
             }
@@ -37,6 +37,12 @@ class UDPController {
             this.port_ = address.port;
             console.log("udp listening "+address.address+" "+address.port);
         });
+
+        //this.udpSock.setRecvBufferSize(1024*1024);
+    }
+
+    setRecvBufferSize (size) {
+        this.udpSock.setRecvBufferSize(size);
     }
 
     bind (ipAddr, port, cbFunc) {
@@ -54,7 +60,7 @@ class UDPController {
         if (port === null || port === undefined || ipAddr === null || ipAddr === undefined || data === undefined) {
             return false;
         }
-        console.log("udp controller - send - port: "+port+", addr: "+ipAddr+", data:");
+        //console.log("udp controller - send - port: "+port+", addr: "+ipAddr+", data:");
         this.udpSock.send(data, port, ipAddr, (err) => {
             if (err !== null) {
                 console.log("sendUDPSock - "+err);

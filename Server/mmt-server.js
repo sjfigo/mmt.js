@@ -67,7 +67,7 @@ class mmtServer {
     }*/
 
     onCallSetupError (err) {
-        console.log(err);
+        console.log('Call setup error:' + err);
     }
 
     onCallSetupEnd () {

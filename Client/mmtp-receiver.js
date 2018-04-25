@@ -4,13 +4,14 @@ var Depayloadizer = require("../payload-manager/depayloadizer");
 var UDPBuffer = require("../util/udp-buffer");
 
 var that = null;
+var pktCnt = 0;
 
 class mmtpReceiver {
     constructor (host, port, client) {
         this.port_ = port;
         this.host_ = host;
         this.client_ = client;
-        this.sock = new UdpController();   
+        this.sock = new UdpController();
         this.sock.onRecvCB = this.onRecv;
 
         //this.recvPackets = [];
@@ -38,15 +39,21 @@ class mmtpReceiver {
         //this.sock.sendUDPSock(Buffer.from("mmt hello"), this.port_, this.host_);
         let portBuf = new Buffer(that.sock.port.toString());
         that.client_.send(portBuf);
+
+        setTimeout(that.getMPUFragment, 1500, true);
+        setTimeout(that.getMPUFragment, 2500, true);
+        setTimeout(that.getMPUFragment, 3500, true);
+        setTimeout(that.getMPUFragment, 4500, true);
+        setTimeout(that.getMPUFragment, 5500, true);
     }
 
     onRecv (packet, info) {
-        console.log("Recv packet - size: " + info.size);
+        //console.log("Recv packet - size: " + info.size);
         that.mmtpDepack.packet = packet;
         let stPacket = that.mmtpDepack.packet;
         if (stPacket !== null) {
             that.udpBuffer.setPacket(stPacket, stPacket.packetSequenceNumber);
-            if (that.ableAssemblyMPUFrag[stPacket.packetID] === undefined) {
+            /*if (that.ableAssemblyMPUFrag[stPacket.packetID] === undefined) {
                 that.ableAssemblyMPUFrag[stPacket.packetID] = 0;
             }
             that.ableAssemblyMPUFrag[stPacket.packetID]++;
@@ -55,19 +62,19 @@ class mmtpReceiver {
             if (stPacket.packetCounterFlag) {
                 // packetCounter is number of packet of same packet id.
                 if (that.ableAssemblyMPUFrag[stPacket.packetID] === stPacket.packetCounter) {
-                    console.log("Pushed to assemblyMPUFragId - " + stPacket.packetID);
+                    //console.log("Pushed to assemblyMPUFragId - " + stPacket.packetID);
                     that.assemblyMPUFragId.push(stPacket.packetID);
                 }
-            }
+            }*/
         }
     }
 
     getMPUFragment (unconditional) {
         let mpuFrag = null;
-        let assemblyMPUFragCnt = this.assemblyMPUFragId.length;
+        //let assemblyMPUFragCnt = this.assemblyMPUFragId.length;
 
         // MPU Fragment를 만들 수 있을 경우.
-        if (assemblyMPUFragCnt > 0) {
+        /*if (assemblyMPUFragCnt > 0) {
             let fragPktId = this.assemblyMPUFragId.find(function findMinId() {
                 let i = 0;
                 let minId = this.assemblyMPUFragId[0];
@@ -77,12 +84,12 @@ class mmtpReceiver {
                     }
                 }
                 return minId;
-            });
+            });*/
 
-            let packetSet = this.udpBuffer.getPacketById(fragPktId);
+            let packetSet = that.udpBuffer.getPacketById(pktCnt++);
             if (packetSet !== null) {
-                let mpuFragBuf = this.mmtpDepack.makeFragment(packetSet, packetSet.length);
-                mpuFrag = this.depayloadizer.depayloadize(mpuFragBuf);
+                let mpuFragBuf = that.mmtpDepack.makeFragment(packetSet, packetSet.length);
+                mpuFrag = that.depayloadizer.depayloadize(mpuFragBuf);
                 // mpuFrag.header => mfu header
                 // mpuFrag.headerSize => mfu header size
                 // mpuFrag.data => payload data
@@ -90,7 +97,7 @@ class mmtpReceiver {
             }
 
             return mpuFrag;
-        }
+        /*}
         else {
             // 현재 존재하는 packet들로 MPU Fragment를 만들어야 하는 경우
             if (unconditional) {
@@ -99,7 +106,7 @@ class mmtpReceiver {
             else {
                 return null;
             }
-        }
+        }*/
     }
 
     get port () {

@@ -206,7 +206,7 @@ class payloadizer {
 
     setPayloadHeader (payloadHeader) {
         let payloadHeaderBuf = null;
-        let payloadHeaderLen = payloadHeader.typeBytes + payloadHeader.fragmentationIndicatorBits + payloadHeader.aggregationFlagBits + payloadHeader.randomAccessPointFlagBits + payloadHeader.mpuSequenceNumberFlagBits + payloadHeader.S_Bits + payloadHeader.mpuSequenceNumberBytes + payloadHeader.fragementCounterBytes;
+        let payloadHeaderLen = payloadHeader.typeBytes + payloadHeader.fragmentationIndicatorBits + payloadHeader.aggregationFlagBits + payloadHeader.randomAccessPointFlagBits + payloadHeader.mpuSequenceNumberFlagBits + payloadHeader.S_Bits + payloadHeader.mpuSequenceNumberBytes + payloadHeader.fragmentCounterBytes;
         let payloadIter = 0;
         payloadHeaderBuf = Buffer.allocUnsafe(payloadHeaderLen).fill(0x00);
         
@@ -217,21 +217,15 @@ class payloadizer {
         let flagsBufferShift = flagsBufferLen - payloadHeader.fragmentationIndicatorBits;
         flagsBufferLen /= 8; // To Bytes
         let flagsBuffer = 0x00;
-        console.log('flagsBufferShift 1: '+flagsBufferShift);
         flagsBuffer |= (payloadHeader.fragmentationIndicator << flagsBufferShift);
         flagsBufferShift -= payloadHeader.aggregationFlagBits;
-        console.log('flagsBufferShift 2: '+flagsBufferShift + ' ' + payloadHeader.fragmentationIndicator + ' ' + flagsBuffer);
         flagsBuffer |= (payloadHeader.aggregationFlag << flagsBufferShift);
         flagsBufferShift -= payloadHeader.randomAccessPointFlagBits;
-        console.log('flagsBufferShift 3: '+flagsBufferShift + ' ' + payloadHeader.aggregationFlag + ' ' + flagsBuffer);
         flagsBuffer |= (payloadHeader.randomAccessPointFlag << flagsBufferShift);
         flagsBufferShift -= payloadHeader.mpuSequenceNumberFlagBits;
-        console.log('flagsBufferShift 4: '+flagsBufferShift + ' ' + payloadHeader.randomAccessPointFlag + ' ' + flagsBuffer);
         flagsBuffer |= (payloadHeader.mpuSequenceNumberFlag << flagsBufferShift);
         flagsBufferShift -= payloadHeader.S_Bits;
-        console.log('flagsBufferShift 5: '+flagsBufferShift + ' ' + payloadHeader.mpuSequenceNumberFlag + ' ' + flagsBuffer);
         flagsBuffer |= (payloadHeader.S << flagsBufferShift);
-        console.log('flagsBuffer ' + flagsBuffer);
         payloadHeaderBuf.writeUIntBE(flagsBuffer, payloadIter, flagsBufferLen);
         payloadIter += flagsBufferLen;
 
@@ -240,8 +234,8 @@ class payloadizer {
             payloadIter += payloadHeader.mpuSequenceNumberBytes;
         }
 
-        payloadHeaderBuf.writeUIntBE(payloadHeader.fragementCounter, payloadIter, payloadHeader.fragementCounterBytes);
-        payloadIter += payloadHeader.fragementCounterBytes;
+        payloadHeaderBuf.writeUIntBE(payloadHeader.fragmentCounter, payloadIter, payloadHeader.fragmentCounterBytes);
+        payloadIter += payloadHeader.fragmentCounterBytes;
 
         return {buf: payloadHeaderBuf, len:payloadIter};
     }

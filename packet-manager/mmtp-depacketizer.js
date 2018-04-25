@@ -65,7 +65,7 @@ class mmtpDepacketizer {
         iterator += 2;
 
         packet.packetSequenceNumber = pktBuf.readUInt32BE(iterator);
-        console.log("depacketizer - packet seq num - "+packet.packetSequenceNumber);
+        console.log("depacketizer - packet id - " + packet.packetID + " / packet seq num - "+packet.packetSequenceNumber);
         iterator += 4;
 
         packet.timestamp = pktBuf.readUInt32BE(iterator);

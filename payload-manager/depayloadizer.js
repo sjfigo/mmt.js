@@ -37,9 +37,9 @@ class depayloadizer {
         let buf = null;
         let iterator = beginPoint;
 
-        buf = fragment.readUInt8BE(iterator);
+        buf = fragment.readUIntBE(iterator, 1);
         iterator += 1;
-        mfuHeader.fragmentType((buf & 0xFE) >> 1);
+        mfuHeader.setFragmentType((buf & 0xFE) >> 1);
         if (buf & 0x01) { // Non-timed media
             mfuHeader.setNonTimed();
 
@@ -58,10 +58,10 @@ class depayloadizer {
             mfuHeader.timedMediaOffset = fragment.readUInt16BE(iterator);
             iterator += 2;
 
-            mfuHeader.timedMediaPriority = fragment.readUInt8BE(iterator);
+            mfuHeader.timedMediaPriority = fragment.readUIntBE(iterator, 1);
             iterator += 1;
 
-            mfuHeader.timedMeidaDepCounter = fragment.readUInt8BE(iterator);
+            mfuHeader.timedMeidaDepCounter = fragment.readUIntBE(iterator, 1);
             iterator += 1;
         }
 
@@ -73,10 +73,10 @@ class depayloadizer {
         let iterator = beginPoint;
         let buf = null;
 
-        payload.type = payloadData.readUInt8BE(iterator);
+        payload.type = payloadData.readUIntBE(iterator, 1);
         iterator += 1;
 
-        buf = payloadData.readUInt8BE(iterator);
+        buf = payloadData.readUIntBE(iterator, 1);
         iterator += 1;
 
         payload.fragmentationIndicator = (buf & 0xC0) >> 6;
@@ -90,7 +90,7 @@ class depayloadizer {
             iterator += 4;
         }
 
-        payload.fragementCounter = payloadData.readUInt8BE(iterator);
+        payload.fragmentCounter = payloadData.readUIntBE(iterator, 1);
         iterator += 1;
 
         while (iterator < payloadData.length) {
@@ -99,6 +99,7 @@ class depayloadizer {
             let du = Buffer.allocUnsafe(duLen).fill(0x00);
             du.copy(payloadData, iterator, 0, duLen);
             payload.setDataUnit(du, duLen);
+            iterator += duLen;
         }
 
         return {data: payload, size: iterator};

@@ -7,7 +7,7 @@ class ntp {
     }
 
     get now () {
-        let ntpDate = Date.now();
+        let ntpDate = Date.now()
         /*var ntpClient = require('ntp-client');
         ntpClient.getNetworkTime("pool.ntp.org", 123, function(err, date) {
             if(err) {
@@ -21,7 +21,7 @@ class ntp {
         });
 
         return ntpDate; //->>null*/
-        console.log("ntp.now: " + ntpDate + " - " + 2^32);
+        //console.log("ntp.now: " + ntpDate + " - " + 2^32);
         return ntpDate % (2^32);
     }
 }

@@ -50,7 +50,7 @@ class FragmentedMPUHeader {
         return header;
     }*/
 
-    set fragmentType (ft) {
+    setFragmentType (ft) {
         this.FT_ = ft;
     }
     get fragmentType () {

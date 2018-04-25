@@ -13,14 +13,14 @@ class mmtpPacketizer {
     }
 
     get packet () {
-        console.log("getPacket - "+this.packetList.length);
+        //console.log("getPacket - "+this.packetList.length);
         if (this.packetList.length - this.packetIterator > 0) {
             if (this.packetIterator > 100 && this.packetList.length > this.packetIterator+1) {
                 this.packetList.splice(0, this.packetIterator);
                 this.packetIterator = 0;
             }
             let packet = this.packetList[this.packetIterator++];
-            console.log(packet);
+            //console.log(packet);
             return packet;
         }
         else {
@@ -57,7 +57,7 @@ class mmtpPacketizer {
                 this.prePktId = packet.packetID;
             }
             packet.packetCounter = this.packetCounter;
-            console.log("Packetizer - packet counter: " + packet.packetCounter + ", packet id: " + packet.packetID);            
+            //console.log("Packetizer - packet counter: " + packet.packetCounter + ", packet id: " + packet.packetID);            
         }
 
         if (!packet.privateUserDataFlag) {
@@ -85,7 +85,7 @@ class mmtpPacketizer {
             packet.source_FEC_payload_ID = 0x00; //???
         }
 
-        console.log("fragSize - "+fragSize);
+        //console.log("fragSize - "+fragSize);
         for (i = 0; i<fragSize; i+=payloadMaxSize) {
             packet.packetSequenceNumber = this.packetSeqNum;
             this.packetSeqNum ++;
@@ -93,7 +93,7 @@ class mmtpPacketizer {
                 this.packetSeqNum = 0;
             }
             packet.timestamp = this.ntp.now; // ??? using open source
-            console.log('ntp: '+packet.timestamp);
+            //console.log('ntp: '+packet.timestamp);
 
             let copyLen = 0;
             if (i + payloadMaxSize >= fragSize) {
@@ -107,7 +107,7 @@ class mmtpPacketizer {
             packet.payload_data = payloadData;
             let packetData = this.packetize(packet, copyLen, packetHeaderSize);
             this.packetList.push(packetData);
-            console.log("packetize - "+i+" "+fragSize+" "+payloadMaxSize);
+            //console.log("packetize - "+i+" "+fragSize+" "+payloadMaxSize);
         }
     }
 
@@ -128,7 +128,7 @@ class mmtpPacketizer {
         flagBuf |= packet.privateUserDataFlag << flagBufShiftLen;
         flagBufShiftLen -= packet.extensionFlagBits;
         flagBuf |= packet.extensionFlag << flagBufShiftLen;
-        console.log("packetize: " + size + "  " + headerSize + " " + flagBuf + "  " + flagBufLen + " " + iterator);
+        //console.log("packetize: " + size + "  " + headerSize + " " + flagBuf + "  " + flagBufLen + " " + iterator);
         pktData.writeUIntBE(flagBuf, iterator, flagBufLen);
         iterator += flagBufLen;
         
@@ -138,11 +138,11 @@ class mmtpPacketizer {
         
         // Set packet sequence number
         pktData.writeUIntBE(packet.packetSequenceNumber, iterator, packet.packetSequenceNumberBytes);
-        console.log("packetizer - packet seq num - " + packet.packetSequenceNumber + " - " +pktData.readUInt32LE(iterator) + " - " + iterator);
+        console.log("packetizer - id - " + packet.packetID + " / packet seq num - " + packet.packetSequenceNumber + " - " +pktData.readUInt32LE(iterator) + " - " + iterator);
         iterator += packet.packetSequenceNumberBytes;
         
         // Set timestamp
-        console.log("packetizer - packet timestamp - " + packet.timestamp + " - " +iterator + " - " + packet.timestampBytes);
+        //console.log("packetizer - packet timestamp - " + packet.timestamp + " - " +iterator + " - " + packet.timestampBytes);
         pktData.writeUIntBE(packet.timestamp, iterator, packet.timestampBytes);
         iterator += packet.timestampBytes;
         

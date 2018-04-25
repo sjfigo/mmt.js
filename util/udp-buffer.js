@@ -25,8 +25,9 @@ class UDPBuffer {
         let packetSet = [];
         let packet = this.getFirstPacket();
 
+        console.log("SequentialList length before getPacketById: " + this._seqList.length);
         // less the id(parameter) than delete
-        while (pacekt.packetID < id) {
+        while (packet.packetID < id) {
             packet = this.getFirstPacket();
         }
         while(packet.packetID === id) {
@@ -37,6 +38,7 @@ class UDPBuffer {
         if (packet !== null) {
             this.setPacket(packet, packet.packetSequenceNumber);
         }
+        console.log("SequentialList length after getPacketById: " + this._seqList.length);
    
         if (packetSet.length > 0) {
             return packetSet;

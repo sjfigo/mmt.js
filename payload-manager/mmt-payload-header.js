@@ -199,10 +199,10 @@ class mmtPayloadHeader {
     set fragmentCounter (frag_count) {
         this.frag_count_ = frag_count;
     }
-    get fragementCounter () {
+    get fragmentCounter () {
         return this.frag_count_;
     }
-    get fragementCounterBytes () {
+    get fragmentCounterBytes () {
         return 1;
     }
 

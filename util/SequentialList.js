@@ -34,6 +34,11 @@ class SortedList {
     constructor () {
         this._list = []; 
     }
+
+    get length () {
+        return this._list.length;
+    }
+
     putItem (item) {
         let i = 0;
         let len = this._list.length;
@@ -159,6 +164,10 @@ class SequentialList {
         this._lastItem = null;
     }
 
+    get length() {
+        return this._seqList.length + this._sortedList.length;
+    }
+
     getNextSeqItem () {
         let item = this._seqList[0];
         if (item !== null && item !== undefined) {
@@ -234,13 +243,13 @@ class SequentialList {
         for (i = 0; i < len; i++) {
             str += this._seqList[i].seq + " - ";
         }
-        console.log("Sequential putItems: " + str);
+        //console.log("Sequential putItems: " + str);
         str = "";
         len = this._sortedList.length;
         for (i=0; i<len; i++) {
             str += this._sortedList.pullItem(i).seq + " - ";
         }
-        console.log("SortedList putItems: " + str);
+        //console.log("SortedList putItems: " + str);
 
         return true;
     }

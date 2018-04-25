@@ -23,7 +23,7 @@ class TcpController {
         });
        
         server.on("data", function (chunk) {
-            console.log(chunk);
+            //console.log(chunk);
             if (that.onRecv) {
                 that.onRecv(chunk);
             }
@@ -61,7 +61,7 @@ class TcpController {
         });
 
         client.on("data", function (chunk) {
-            console.log(chunk);
+            //console.log(chunk);
             if (that.onRecv) {
                 that.onRecv(chunk);
             }
