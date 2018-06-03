@@ -40,6 +40,24 @@ class mmtpPacket {
         return 1500;
     }
 
+    get headerSize () {
+        return (this.versionBits + 
+                this.packetCounterFlagBits + 
+                this.fecTypeBits +
+                this.privateUserDataFlagBits +
+                this.extensionFlagBits +
+                this.reservedBits +
+                (this.packetIDBytes * 8) +
+                (this.packetSequenceNumberBytes * 8) +
+                (this.timestampBytes * 8) + 
+                (this.packetCounterBytes * 8) +
+                (this.private_user_dataBytes * 8) + 
+                (this.source_FEC_payload_ID_Bytes * 8) +
+                (this.extTypeBytes * 8) +
+                (this.extLengthBytes * 8) +
+                (this.ext_header_extension_valueBytes * 8)) / 8;
+    }
+
     set version (v) {
         this.V_ = v;
     }
@@ -146,12 +164,7 @@ class mmtpPacket {
         return this.packet_counter_;
     }
     get packetCounterBytes () {
-        if (this.C_) {
-            return 4;
-        }
-        else {
-            return 0;
-        }
+        return 4;
     }
 
     set private_user_data (data) {
@@ -161,12 +174,7 @@ class mmtpPacket {
         return this.private_user_data_;
     }
     get private_user_dataBytes () {
-        if (this.P_) {
-            return 2;
-        }
-        else {
-            return 0;
-        }
+        return 2;
     }
 
     set payload_data (data) {
@@ -183,12 +191,7 @@ class mmtpPacket {
         return this.source_FEC_payload_ID_;
     }
     get source_FEC_payload_ID_Bytes () {
-        if (this.FEC_ === 0x01) {
-            return 4;
-        }
-        else {
-            return 0;
-        }
+        return 4;
     }
 
     set extType (type) {
@@ -198,12 +201,7 @@ class mmtpPacket {
         return this.ext_type_;
     }
     get extTypeBytes () {
-        if (this.this.E_) {
-            return 2;
-        }
-        else {
-            return 0;
-        }
+        return 2;
     }
 
     set extLength (len) {
@@ -213,12 +211,7 @@ class mmtpPacket {
         return this.ext_length_;
     }
     get extLengthBytes () {
-        if (this.this.E_) {
-            return 2;
-        }
-        else {
-            return 0;
-        }
+        return 2;
     }
 
     set ext_header_extension_value (value) {
@@ -228,12 +221,7 @@ class mmtpPacket {
         return this.ext_header_extension_value_;
     }
     get ext_header_extension_valueBytes () {
-        if (this.this.E_) {
-            return 4;
-        }
-        else {
-            return 0;
-        }
+        return 4;
     }
 }
 module.exports = mmtpPacket;

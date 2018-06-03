@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "type": "node",
             "request": "launch",
@@ -20,6 +21,13 @@
             "request": "launch",
             "name": "Launch Server&Client Test",
             "program": "${workspaceRoot}/Client/mmt-client.js",
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Server Debug",
+            "program": "${workspaceRoot}/Server/mmt-server.js",
             "cwd": "${workspaceRoot}"
         },
         {

@@ -25,8 +25,10 @@ class mmtPayloadHeader {
         this.DU_length_ = [];
         this.DU_data_ = [];
 
-        this.DU_length_.push(DU_length);
-        this.DU_data_.push(DU_data);
+        if (DU_length !== undefined && DU_data !== undefined) {
+            this.DU_length_.push(DU_length);
+            this.DU_data_.push(DU_data);
+        }
     }
 
     /*

@@ -6,7 +6,7 @@ class mmtpPacketizer {
         console.log("mmtpPacketizer constructor");
         this.packetList = [];
         this.packetIterator = 0;
-        this.packetCounter = 0;
+        this.packetCounter = 1;
         this.packetSeqNum = 0;
         this.prePktId = 0;
         this.ntp = new NTP();
@@ -37,8 +37,8 @@ class mmtpPacketizer {
         let i = 0;
         let fragSize = fragment.length;
         let packet = new mmtpPacket ();
-        let payloadMaxSize = packet.MTU - 32;
-        let packetHeaderSize = 32;
+        let packetHeaderSize = packet.headerSize; 
+        let payloadMaxSize = packet.MTU - packetHeaderSize;        
         
         packet.version = 0x00;
         packet.packetCounterFlag = 0x01;
@@ -52,7 +52,7 @@ class mmtpPacketizer {
             packetHeaderSize -= 4;
         }
         else { // It is incremented by the sending of an MMT packet and is different from the value packet_id.
-            if (packet.packetID != this.prePktId) {
+            if (packet.packetID !== this.prePktId) {
                 this.packetCounter ++;
                 this.prePktId = packet.packetID;
             }
@@ -83,6 +83,8 @@ class mmtpPacketizer {
         }
         else {
             packet.source_FEC_payload_ID = 0x00; //???
+            payloadMaxSize += 4;
+            packetHeaderSize -= 4;
         }
 
         //console.log("fragSize - "+fragSize);
@@ -138,7 +140,7 @@ class mmtpPacketizer {
         
         // Set packet sequence number
         pktData.writeUIntBE(packet.packetSequenceNumber, iterator, packet.packetSequenceNumberBytes);
-        console.log("packetizer - id - " + packet.packetID + " / packet seq num - " + packet.packetSequenceNumber + " - " +pktData.readUInt32LE(iterator) + " - " + iterator);
+        //console.log("packetizer - id - " + packet.packetID + " / packet seq num - " + packet.packetSequenceNumber + " - " +pktData.readUInt32LE(iterator) + " - " + iterator);
         iterator += packet.packetSequenceNumberBytes;
         
         // Set timestamp
@@ -146,13 +148,13 @@ class mmtpPacketizer {
         pktData.writeUIntBE(packet.timestamp, iterator, packet.timestampBytes);
         iterator += packet.timestampBytes;
         
-        if (packet.packetCounterFlag) {
+        if (packet.packetCounterFlag !== 0x00) {
             // Set packet counter
             pktData.writeUIntBE(packet.packetCounter, iterator, packet.packetCounterBytes);
             iterator += packet.packetCounterBytes;
         }
         
-        if (packet.privateUserDataFlag) {
+        if (packet.privateUserDataFlag !== 0x00) {
             // Set private user data
             pktData.writeUIntBE(packet.private_user_data, iterator, packet.private_user_dataBytes);
             iterator += packet.private_user_dataBytes;

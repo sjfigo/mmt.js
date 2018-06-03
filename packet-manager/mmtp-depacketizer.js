@@ -1,4 +1,5 @@
 var mmtpPacket = require("./mmtp-packet");
+var cnt1 = 0;
 
 class mmtpDepacketizer {
     constructor () {
@@ -35,7 +36,12 @@ class mmtpDepacketizer {
 
         for (i=0; i<count; i++) {
             packet = packetSet[i];
-            totalSize += packet.payload_data.length;
+            if (packet === null || packet === undefined) {
+                let a = 0 ;
+            }
+            else {
+                totalSize += packet.payload_data.length;
+            }
         }
         fragment = Buffer.allocUnsafe(totalSize).fill(0x00);
         for (i=0; i<count; i++) {
@@ -44,6 +50,11 @@ class mmtpDepacketizer {
             packet.payload_data.copy(fragment, fragIterator, 0, packetLen);
             fragIterator += packetLen;
         }
+
+        if (cnt1 === 0) {
+            console.log("Client - first mpu fragment: " + fragment);
+        }
+        cnt1++;
 
         return fragment;
     }
@@ -56,7 +67,7 @@ class mmtpDepacketizer {
         let flags = pktBuf.readUInt16BE(iterator);
         packet.version = (flags & 0xC000) >>> 14;
         packet.packetCounterFlag = (flags & 0x2000) >>> 13;
-        packet.fecType = (flags & 0x1800) >>> 12;
+        packet.fecType = (flags & 0x1800) >>> 11;
         packet.privateUserDataFlag = (flags & 0x0400) >>> 10;
         packet.extensionFlag = (flags & 0x0200) >>> 9;
         iterator += 2;
@@ -86,7 +97,7 @@ class mmtpDepacketizer {
         }
 
         if (packet.extensionFlag) {
-            payloadEnd -= 16;
+            payloadEnd -= 8;
         }
 
         packet.payload_data = Buffer.allocUnsafe(payloadEnd - iterator).fill(0x00);

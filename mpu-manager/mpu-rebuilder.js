@@ -27,13 +27,11 @@ class MPURebuilder {
 
         console.log("Set mpuFrag size: "+mpuFrag.size);
         console.log("Set mpuFrag type: "+mpuFrag.type);
-        let temp = this.get4ByteBuffer(mpuFrag.data, 4);
-        console.log("Set mpuFrag type2: "+temp);
 
         console.log("compose begin");
         if(this.postMPU !== null && this.postMPU !== undefined) {
             console.log(this.postMPU);
-            if (mpuFrag.type === MPU_Fragment_Type.ftyp && this.mpuFrags.length > 0) {
+            if (mpuFrag.type === MPU_Fragment_Type.MPU_Metadata && this.mpuFrags.length > 0) {
                 this.concatenateMPUFrags();
                 this.postMPU(this.mpu);
             }
@@ -185,13 +183,13 @@ class MPURebuilder {
         if (size > 8) {
             let boxName = this.get4ByteBuffer(data, 4);
             if (boxName.compare(ftyp) === 0) {
-                return MPU_Fragment_Type.ftyp;
+                return MPU_Fragment_Type.MPU_Metadata;
             }
             else if (boxName.compare(moof) === 0) {
-                return MPU_Fragment_Type.moof;
+                return MPU_Fragment_Type.Movie_Fragment_Metadata;
             }
             else if (boxName.compare(mdat) === 0) {
-                return MPU_Fragment_Type.mdat;
+                return MPU_Fragment_Type.MFU;
             }
         }
     }
@@ -204,7 +202,7 @@ class MPURebuilder {
         let moov = Buffer.from("moov");
         let moovLen = moov.length;
 
-        if (mpuFrag.type === MPU_Fragment_Type.ftyp) {
+        if (mpuFrag.type === MPU_Fragment_Type.MPU_Metadata) {
             let iterator = 0;
             console.log("mpuFrag.length: " + mpuFrag.data.length);
             let boxName = this.get4ByteBuffer(mpuFrag.data, iterator + 4);
@@ -233,10 +231,10 @@ class MPURebuilder {
 
             ret = this.setMPUMetadata(mpuFrag);
         }
-        else if (mpuFrag.type === MPU_Fragment_Type.moof) {
+        else if (mpuFrag.type === MPU_Fragment_Type.Movie_Fragment_Metadata) {
             ret = this.setMoofMetadata(mpuFrag);
         }
-        else if (mpuFrag.type === MPU_Fragment_Type.mdat) {
+        else if (mpuFrag.type === MPU_Fragment_Type.MFU) {
             let iterator = 0;
             let mfu = new MFU();
             mfu.mfu_num = this.getIntTo4ByteBuffer(mpuFrag.data, iterator);

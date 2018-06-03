@@ -1,5 +1,7 @@
 var TcpController = require("../transport/tcp-controller");
 var mmtpReceiver = require("./mmtp-receiver");
+var FileController = require("../util/file-controller");
+
 var that = null;
 
 class mmtClient {
@@ -15,6 +17,9 @@ class mmtClient {
         this.serverCallSetupPort = 0;
 
         this.channelList = [];
+
+        this.fileController = new FileController();
+        this.fileCnt = 0;
 
         that = this;
 
@@ -34,14 +39,15 @@ class mmtClient {
         let host = that.serverCallSetupAddr;
         console.log("host: "+that.serverCallSetupAddr);
         console.log("port: "+port);
-        let recveiver = new mmtpReceiver(host, 0, that.client);
-        recveiver.ready();
-        that.channelList.push({
+        let receiver = new mmtpReceiver(host, 0, that.client, that.onRecvMPU);
+        receiver.ready();
+        
+        let channel = {
             host: host,
             port: port,
-            mediaReceiver: recveiver
-        });
-        //that.client.send(Buffer.from("I'm ready."));
+            mediaReceiver: receiver
+        };
+        that.channelList.push(channel);
     }
 
     onCallSetupError (err) {
@@ -58,6 +64,11 @@ class mmtClient {
 
     onCallSetupConnected () {
         console.log("mmtClient onConnected");
+    }
+
+    onRecvMPU (mpu) {
+        // Pass to MSE
+        this.fileController.writeBinFile("./output/"+that.fileCnt.toString(), mpu);
     }
 }
 module.exports = mmtClient;

@@ -1,5 +1,6 @@
 var MMTPayloadHeader = require('./mmt-payload-header.js');
 var DataUnitType = require('./du-type');
+var cnt2 = 0
 
 //MPU, MFU and Data Unit...
 
@@ -16,7 +17,7 @@ class payloadizer {
         this.duList_ = [];
         this.duListIterator_ = 0;
         this.duListLimit_ = 30;
-        this.duMaxLength_ = (2^16)-1;
+        this.duMaxLength_ = Math.pow(2,16)-1;
         this.payloadList_ = [];
         this.payloadListIterator_ = 0;
         this.payloadListLimit_ = 100;
@@ -67,6 +68,11 @@ class payloadizer {
                 this.duListIterator_++;
             }
             numOfPayloadizeDu = payloadizeDUs.length;
+            if (numOfPayloadizeDu === 0) {
+                console.log("No Data unit");
+                return ret;
+            }
+            console.log("numOfPayloadizeDu: " + numOfPayloadizeDu);
 
             // Common payload header un-related du length
             payloadHeader.mpuSequenceNumberFlag = 0x01;
@@ -83,13 +89,14 @@ class payloadizer {
                 if (du.length < this.duMaxLength_) {
                     endPoint = du.length;
                 }
-                while (beginPoint > du.length) {
+                while (beginPoint < du.length) {
                     let fragDULength = endPoint - beginPoint;
                     let fragDU = Buffer.allocUnsafe(fragDULength).fill(0x00);
-                    du.data.copy(fragDU, 0, 0, fragDULength);
+                    du.data.copy(fragDU, 0, beginPoint, endPoint);
                     du_datas.push(fragDU);
+                    //console.log("DU pushed: " + fragDU);
 
-                    beginPoint = this.duMaxLength_ + 1;
+                    beginPoint += this.duMaxLength_;
                     endPoint += this.duMaxLength_;
                     if (endPoint > du.length) {
                         endPoint = du.length;
@@ -107,13 +114,14 @@ class payloadizer {
             payload = Buffer.allocUnsafe(totalFragDULength + payloadHeaderObj.len).fill(0x00);
             payloadHeaderObj.buf.copy(payload, payloadIterator, 0, payloadHeaderObj.len);
             payloadIterator += payloadHeaderObj.len;
+            console.log("du_datas.length: " + du_datas.length);
             for (j = 0; j < du_datas.length; j++) {
-                console.log("Index out of range? " + du.length + " - " + payloadIterator + " - " + payload.length); //du.length is less than 65536
+                //console.log("Index out of range? " + du.length + " - " + payloadIterator + " - " + payload.length); //du.length is less than 65536
                 payload.writeUIntBE(du_datas[j].length, payloadIterator, 2);
                 payloadIterator += 2;
                 //console.log("du.data - " +du.data);
-                du_datas[j].data.copy(payload, payloadIterator, 0, du_datas[j].data.length);
-                payloadIterator += du_datas[j].data.length;
+                du_datas[j].copy(payload, payloadIterator, 0, du_datas[j].length);
+                payloadIterator += du_datas[j].length;
             }                    
 
             this.payloadList_.push({
@@ -137,7 +145,7 @@ class payloadizer {
                 payload = Buffer.allocUnsafe(du.length + 2 + payloadHeaderObj.len).fill(0x00);
                 payloadHeaderObj.buf.copy(payload, payloadIterator, 0, payloadHeaderObj.len);
                 payloadIterator += payloadHeaderObj.len;
-                console.log("Index out of range? " + du.length + " - " + payloadIterator + " - " + payload.length); //du.length is less than 65536
+                //console.log("Index out of range? " + du.length + " - " + payloadIterator + " - " + payload.length); //du.length is less than 65536
                 payload.writeUIntBE(du.length, payloadIterator, 2);
                 payloadIterator += 2;
                 //console.log("du.data - " +du.data);
@@ -172,13 +180,15 @@ class payloadizer {
                     payload = Buffer.allocUnsafe(endPoint - beginPoint + 2 + payloadHeaderObj.len).fill(0x00);
                     payloadHeaderObj.buf.copy(payload, payloadIterator, 0, payloadHeaderObj.len);
                     payloadIterator += payloadHeaderObj.len;
-                    console.log("Index out of range? " + du.length + " - " + payloadIterator + " - " + payload.length); //du.length is less than 65536
+                    //console.log("Index out of range? " + du.length + " - " + payloadIterator + " - " + payload.length); //du.length is less than 65536
                     payload.writeUIntBE(endPoint - beginPoint, payloadIterator, 2);
                     payloadIterator += 2;
                     //console.log("du.data - " +du.data);
                     du.data.copy(payload, payloadIterator, beginPoint, endPoint);
                     payloadIterator += (endPoint - beginPoint);
 
+                    //console.log("Push payload: ");
+                    //console.log(payload);
                     this.payloadList_.push({
                         payload : payload,
                         length : payloadIterator
@@ -212,30 +222,58 @@ class payloadizer {
         
         payloadHeaderBuf.writeUIntBE(payloadHeader.type, payloadIter, payloadHeader.typeBytes);
         payloadIter += payloadHeader.typeBytes;
+        if (cnt2 === 0) {
+            console.log("type: " + payloadHeaderBuf + " - " + payloadHeader.type);
+        }
 
         let flagsBufferLen = payloadHeader.fragmentationIndicatorBits + payloadHeader.aggregationFlagBits + payloadHeader.randomAccessPointFlagBits + payloadHeader.mpuSequenceNumberFlagBits + payloadHeader.S_Bits;
         let flagsBufferShift = flagsBufferLen - payloadHeader.fragmentationIndicatorBits;
         flagsBufferLen /= 8; // To Bytes
         let flagsBuffer = 0x00;
         flagsBuffer |= (payloadHeader.fragmentationIndicator << flagsBufferShift);
+        if (cnt2 === 0) {
+            console.log("fragmentationIndicator: " + flagsBuffer + " - " + payloadHeader.fragmentationIndicator + " - " + flagsBufferShift);
+        }
         flagsBufferShift -= payloadHeader.aggregationFlagBits;
         flagsBuffer |= (payloadHeader.aggregationFlag << flagsBufferShift);
+        if (cnt2 === 0) {
+            console.log("aggregationFlag: " + flagsBuffer + " - " + payloadHeader.aggregationFlag + " - " + flagsBufferShift);
+        }
         flagsBufferShift -= payloadHeader.randomAccessPointFlagBits;
         flagsBuffer |= (payloadHeader.randomAccessPointFlag << flagsBufferShift);
+        if (cnt2 === 0) {
+            console.log("randomAccessPointFlag: " + flagsBuffer + " - " + payloadHeader.randomAccessPointFlag + " - " + flagsBufferShift);
+        }
         flagsBufferShift -= payloadHeader.mpuSequenceNumberFlagBits;
         flagsBuffer |= (payloadHeader.mpuSequenceNumberFlag << flagsBufferShift);
+        if (cnt2 === 0) {
+            console.log("mpuSequenceNumberFlag: " + flagsBuffer + " - " + payloadHeader.mpuSequenceNumberFlag + " - " + flagsBufferShift);
+        }
         flagsBufferShift -= payloadHeader.S_Bits;
         flagsBuffer |= (payloadHeader.S << flagsBufferShift);
+        if (cnt2 === 0) {
+            console.log("S: " + flagsBuffer + " - " + payloadHeader.S + " - " + flagsBufferShift);
+        }
         payloadHeaderBuf.writeUIntBE(flagsBuffer, payloadIter, flagsBufferLen);
         payloadIter += flagsBufferLen;
+        if (cnt2 === 0) {
+            console.log("flagsBuffer: " + payloadHeaderBuf + " - " + flagsBuffer);
+        }
 
         if (payloadHeader.mpuSequenceNumberFlag) {
             payloadHeaderBuf.writeUIntBE(payloadHeader.mpuSequenceNumber, payloadIter, payloadHeader.mpuSequenceNumberBytes);
             payloadIter += payloadHeader.mpuSequenceNumberBytes;
+            if (cnt2 === 0) {
+                console.log("mpuSequenceNumber: " + payloadHeaderBuf + " - " + payloadHeader.mpuSequenceNumber);
+            }
         }
 
         payloadHeaderBuf.writeUIntBE(payloadHeader.fragmentCounter, payloadIter, payloadHeader.fragmentCounterBytes);
         payloadIter += payloadHeader.fragmentCounterBytes;
+        if (cnt2 === 0) {
+            console.log("fragmentCounter: " + payloadHeaderBuf + " - " + payloadHeader.fragmentCounter);
+        }
+        cnt2++;
 
         return {buf: payloadHeaderBuf, len:payloadIter};
     }
@@ -301,13 +339,20 @@ class payloadizer {
     }
 
     get payload () {
-        let payload = this.payloadList_[this.payloadListIterator_];
-        this.payloadListIterator_++;
-        if (this.payloadListIterator_ > this.payloadListLimit_) {
-            this.payloadList_.splice(0, this.payloadListIterator_);
-            this.payloadListIterator_ = 0;
+        if (this.payloadListIterator_ < this.payloadList_.length) {
+            let payload = this.payloadList_[this.payloadListIterator_];
+            this.payloadListIterator_++;
+            if (this.payloadListIterator_ > this.payloadListLimit_) {
+                this.payloadList_.splice(0, this.payloadListIterator_);
+                this.payloadListIterator_ = 0;
+            }
+            console.log("return payload(" + this.payloadListIterator_ + "): ");
+            console.log(payload.payload);
+            return payload;
         }
-        return payload;
+        else {
+            return null;
+        }
     }
 }
 module.exports = payloadizer;

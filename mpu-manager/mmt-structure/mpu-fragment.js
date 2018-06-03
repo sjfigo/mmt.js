@@ -22,12 +22,6 @@ class MPUFragment {
     set type (type) {
         this.mpufType = type;
     }
-    get typeInfo () {
-        return this.typeInfo;
-    }
-    set typeInfo (typeInfo) {
-        this.typeInfo = typeInfo;
-    }
     get data () {
         return this.mpufData;
     }

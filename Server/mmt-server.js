@@ -120,4 +120,12 @@ class mmtServer {
 module.exports = mmtServer;
 
 var server = new mmtServer ();
+// Server execute below
 server.createServer ();
+
+// Server debug code below
+/*server.onCallSetupConnected({
+    localAddress: '127.0.0.1',
+    udpSenderPort: 8000
+});
+server.greenLight(0);*/

@@ -239,7 +239,7 @@ class MPUDissolver {
 
         let mpuMetaSize = 0;
 
-        mpuFrag.type = MPU_Fragment_Type.ftyp;
+        mpuFrag.type = MPU_Fragment_Type.MPU_Metadata;
 
         while (boxName.compare(moof) !== 0) {
             if (boxName.compare(moov) === 0) {
@@ -278,7 +278,7 @@ class MPUDissolver {
         let mpuFrag = new MPUFragment();
         let mdatHeaderLen = 8;
 
-        mpuFrag.type = MPU_Fragment_Type.moof;
+        mpuFrag.type = MPU_Fragment_Type.Movie_Fragment_Metadata;
         mpuFrag.size = boxSize + mdatHeaderLen;
         mpuFrag.data = this.bufferCopy(mpuFrag.data, 0, this.mpu.data, this.mpu.descriptor, mpuFrag.size);
 
@@ -334,7 +334,7 @@ class MPUDissolver {
         //console.log("getMFU - type1: "+temp);
         //console.log("mdat size is " + mpuFrag.data.length);
 
-        mpuFrag.type = MPU_Fragment_Type.mdat;
+        mpuFrag.type = MPU_Fragment_Type.MFU;
         //console.log("mpuFrag.type: "+mpuFrag.type);
 
         //console.log("video_sample_count: " + this.mpu.video_sample_count);

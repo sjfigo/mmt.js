@@ -1,6 +1,6 @@
 var MPU_Fragment_Type = {
-    moof : 0x00,    // Movie Fragment Metadata
-    ftyp : 0x01,    // MPU Metadata
-    mdat : 0x02     // MFU
+    Movie_Fragment_Metadata : 0x00,    // moof and mdat header
+    MPU_Metadata : 0x01,    // ftyp, mmpu, moov
+    MFU : 0x02     // mdat samples and sub-samples
 }
 module.exports = MPU_Fragment_Type;

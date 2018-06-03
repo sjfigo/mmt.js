@@ -8,13 +8,33 @@ class UDPBuffer {
     
     getFirstPacket () {
         let item = this._seqList.getNextSeqItem();
-        return item.data;
+        if (item !== null) {
+            console.log("Pull from seqList - " + item.data.packetID + " - " + item.data.packetSequenceNumber);
+        
+            return item.data;
+        }
+        else {
+            return null;
+        }
     }
+
+    checkFirstPacket () {
+        let item = this._seqList.checkNextSeqItem();
+        if (item !== null) {
+            console.log("Check from seqList - " + item.data.packetID + " - " + item.data.packetSequenceNumber);
+        
+            return item.data;
+        }
+        else {
+            return null;
+        }
+    }
+    
     setPacket (packet, seq) {
         let item = new Item();
         item.seq = seq;
         item.data = packet;
-        if(!this._seqList.putItem(item)) {
+        if(this._seqList.putItem(item) === false) {
             console.log("Drop packet. seq: " + item.seq);
         }
 
@@ -23,21 +43,25 @@ class UDPBuffer {
 
     getPacketById (id) {
         let packetSet = [];
-        let packet = this.getFirstPacket();
+        let packet = null;
+        let checkPacket = this.checkFirstPacket();
 
         console.log("SequentialList length before getPacketById: " + this._seqList.length);
         // less the id(parameter) than delete
-        while (packet.packetID < id) {
+        while (checkPacket !== null && checkPacket.packetID < id) {
             packet = this.getFirstPacket();
+            checkPacket = this.checkFirstPacket();
         }
-        while(packet.packetID === id) {
-            packetSet.push(packet);
+        while(checkPacket !== null && checkPacket.packetID === id) {
             packet = this.getFirstPacket();
+            packetSet.push(packet);
+            checkPacket = this.checkFirstPacket();
         }
 
-        if (packet !== null) {
+        /*if (packet !== null) {
+            console.log("Push to seqList - " + packet.packetID + " - " + packet.packetSequenceNumber);
             this.setPacket(packet, packet.packetSequenceNumber);
-        }
+        }*/
         console.log("SequentialList length after getPacketById: " + this._seqList.length);
    
         if (packetSet.length > 0) {

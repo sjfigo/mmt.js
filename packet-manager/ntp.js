@@ -22,7 +22,7 @@ class ntp {
 
         return ntpDate; //->>null*/
         //console.log("ntp.now: " + ntpDate + " - " + 2^32);
-        return ntpDate % (2^32);
+        return ntpDate % Math.pow(2, 32);
     }
 }
 

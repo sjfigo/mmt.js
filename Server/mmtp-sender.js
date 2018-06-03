@@ -2,13 +2,17 @@ var UDPController = require("../transport/udp-controller");
 var FileController = require("../util/file-controller");
 var MPUDissolver = require("./../mpu-manager/mpu-dissolver");
 var MMTPPacketizer = require("../packet-manager/mmtp-packetizer");
-var MPUFragmentType = require("./../mpu-manager/mmt-structure/mpu-fragment-type");
+var MPU_Fragment_Type = require("./../mpu-manager/mmt-structure/mpu-fragment-type");
+var FragmentedMPUHeader = require('./../payload-manager/fragmented-mpu-header');
 var TimedMediaMFUHeader = require("./../payload-manager/timed-media_MFU");
 var NonTimedMediaMFUHeader = require("./../payload-manager/non-timed_media_MFU");
 var Payloadizer = require("./../payload-manager/payloadizer");
 var DUType = require("./../payload-manager/du-type");
 
 var that = null;
+var cnt = 0;
+var packetCnt = 0;
+var payloadCnt = 0;
 
 class mmtpSender {
     constructor (id, addr, port, server, greenLight) {
@@ -20,8 +24,9 @@ class mmtpSender {
         this.clientAddr_ = server.remoteAddress;
         this.clientPort_ = null;
 
-
-        this.server_.on("data", this.onRecv);
+        if (this.server_.on !== undefined) {
+            this.server_.on("data", this.onRecv);
+        }
         
         this.udpSock = new UDPController();
         this.udpSock.onErrorCB = this.onError;
@@ -30,9 +35,11 @@ class mmtpSender {
 
         this.mpuPathList = [];
 
-        this.fragmentCnt = 0;
+        this.payloadCnt = 0;
         this.fileController = new FileController();
         this.mmtpPacketizer = new MMTPPacketizer();
+
+        this.packetSendDebug = false;
 
         that = this;
     }
@@ -104,58 +111,77 @@ class mmtpSender {
             let mpuData = that.fileController.readBinFile(mpuPath);
             //console.log("Read MPU finish");
 
-            setTimeout(this.sendNextMPU, i*1000, mpuData, i);
+            setTimeout(this.sendNextMPU, i*1000, mpuData, i, true);
         }
-
-        console.log("send - finish");
     }
 
-    sendNextMPU (mpuData, mpuNum) {
+    sendNextMPU (mpuData, mpuNum, timed) {
         let j = 0;
         let movieFragmentCnt = 0;
         var payloadizer = new Payloadizer(true, true, false, DUType.MPU_Fragment);
         let ret = false;
+        let sentPackets = new FileController();
+        let outPayloads = new FileController();
+
+        console.log("mpu seq num: " + mpuNum);
 
         // MPU Fragmentation
         let mpuDissolver = new MPUDissolver (mpuData, mpuData.length);
         let mpuFrags = mpuDissolver.mpuFragments;
+        if (cnt === 0) {
+            console.log("Server - first mpu fragment: " + mpuFrags[0].data);
+        }
+        cnt++;
         //console.log("MPU fragmentation finish. number of fragment is " + mpuFrags.length);
 
         let mpuFragCnt = mpuFrags.length;
         for (j=0; j<mpuFragCnt; j++) {
             // Payloadize
+            let iterator = 0;
             let mpuFrag = mpuFrags[j];
             let mpuFragBuf = null;
-            if (mpuFrag.type === MPUFragmentType.moof) {
+            let mpuFragLen = mpuFrag.data.length;
+            let fragmentedMPUHeader = new FragmentedMPUHeader(mpuFrag.type, timed);
+            let fragmentedMPUHeaderBuf = fragmentedMPUHeader.make();
+
+            if (mpuFrag.type === MPU_Fragment_Type.Movie_Fragment_Metadata) {
                 movieFragmentCnt ++;
             }
             
-            if (mpuFrag.type === MPUFragmentType.mdat) { // MFU 
-                let mpuFragLen = mpuFrag.data.length;
+            if (mpuFrag.type === MPU_Fragment_Type.MFU) { 
                 let mfuHeader = null;
                 let mfuHeaderBuf = null;
                 
-                //if timed media {
-                    let movie_fragment_sequence_number = movieFragmentCnt; // Sequenc number of moof or mdat
+                if (timed === true) {
+                    let movie_fragment_sequence_number = movieFragmentCnt; // Sequence number of moof or mdat
                     let sample_number = 1; // Number of sample in the MFU
                     let offset = 0; // offset of the media data of this MFU
                     let priority = 255; // 0~255, 255 highes
                     let dep_counter = 0; // ??? indicates the number of data units that depend on their media processing upon the media data in this MFU.
                     mfuHeader = new TimedMediaMFUHeader(movie_fragment_sequence_number, sample_number, offset, priority, dep_counter);
-                //}
-                //else if non timed media {
-                    //let itemID = 0; // ???
-                    //mfuHeader = new NonTimedMediaMFUHeader(itemID);
-                //}
-
-                mfuHeaderBuf = mfuHeader.make();
-                mpuFragBuf = Buffer.allocUnsafe(mpuFragLen + mfuHeader.totalSize).fill(0x00);
-                mfuHeaderBuf.copy(mpuFragBuf, 0, 0, mfuHeader.totalSize);
-                mpuFrag.data.copy(mpuFragBuf, mfuHeader.totalSize, 0, mpuFragLen);
+                    mfuHeaderBuf = mfuHeader.make();
+                }
+                else {
+                    let itemID = 0; // ???
+                    mfuHeader = new NonTimedMediaMFUHeader(itemID);
+                    mfuHeaderBuf = mfuHeader.make();
+                }
+                
+                mpuFragBuf = Buffer.allocUnsafe(fragmentedMPUHeader.length + mfuHeader.totalSize + mpuFragLen).fill(0x00);
+                fragmentedMPUHeaderBuf.copy(mpuFragBuf, 0, iterator, fragmentedMPUHeader.length);
+                iterator += fragmentedMPUHeader.length;
+                mfuHeaderBuf.copy(mpuFragBuf, iterator, 0, mfuHeader.totalSize);
+                iterator += mfuHeader.totalSize;
+                mpuFrag.data.copy(mpuFragBuf, iterator, 0, mpuFragLen);
+                iterator += mpuFragLen;
                 //console.log("sender - MPU fragment type is mdat, header size: " + mfuHeader.totalSize + ", data size: " + mpuFragLen);
             }
             else {
-                mpuFragBuf = mpuFrag.data;
+                mpuFragBuf = Buffer.allocUnsafe(fragmentedMPUHeader.length + mpuFragLen).fill(0x00);
+                fragmentedMPUHeaderBuf.copy(mpuFragBuf, 0, iterator, fragmentedMPUHeader.length);
+                iterator += fragmentedMPUHeader.length;
+                mpuFrag.data.copy(mpuFragBuf, iterator, 0, mpuFragLen);
+                iterator += mpuFragLen;
                 //console.log("sender - MPU fragment type is " + mpuFrag.type + " - " + mpuFragBuf.length);
             }
 
@@ -167,16 +193,29 @@ class mmtpSender {
             payloadizer.payloadize();
             //console.log("Payloadize finish");
 
-            // Packetize
-            that.mmtpPacketizer.setFragment(mpuFragBuf, that.fragmentCnt);
-            that.fragmentCnt ++;
-            //console.log("Packetize finish");
+            let payload = payloadizer.payload;
+            while (payload !== null){
+                if (that.packetSendDebug === true) {
+                    outPayloads.writeBinFile("./Server/payloads/payload-"+payloadCnt+".log", payload.payload);
+                    payloadCnt++;
+                }
+                // Packetize
+                that.mmtpPacketizer.setFragment(payload.payload, that.payloadCnt);
+                that.payloadCnt ++;
+
+                payload = payloadizer.payload;
+            }
+            console.log("Packetize finish");
 
             // Send
             let packet = that.mmtpPacketizer.packet;
             while (packet !== null) {
                 //console.log("send packet "+packet);
                 that.udpSock.sendUDPSock(packet, that.clientPort_, that.clientAddr_);
+                if (that.packetSendDebug === true) {
+                    sentPackets.writeBinFile("./Server/packets/packet-"+packetCnt+".log", packet);
+                    packetCnt++;
+                }
                 packet = that.mmtpPacketizer.packet;
             }
         }

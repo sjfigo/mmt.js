@@ -53,14 +53,25 @@ class SortedList {
             }
 
             if (i === len) {
-                this._list.push(item);
+                if (this._list.push(item) === len+1) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
             }
             else {
                 this._list.splice(i, 0, item);
+                return true;
             }
         }
         else {
-            this._list.push(item);
+            if (this._list.push(item) === len + 1) {
+                return true;
+            }
+            else {
+                return false;
+            }
         }
 
         /*let str = "";
@@ -168,6 +179,41 @@ class SequentialList {
         return this._seqList.length + this._sortedList.length;
     }
 
+    checkNextSeqItem () {
+        let item = this._seqList[0];
+        if (item !== null && item !== undefined) {
+            if (this._lastItem === null || (this._lastItem !== null && item.seq === this._lastItem.seq + 1)) {
+                return item;
+            }
+            else {
+                console.log("putItem error");
+                return null;
+            }
+        }
+        else if (this._seqList.length === 0 && this._sortedList.length > 0){
+            // drop this seq num
+            let i = 0;
+            let lastItem = null;
+            let len = this._sortedList.length;
+            for(i=0; i<len; i++) {
+                item = this._sortedList.pullItem();
+                if (lastItem !== null && lastItem.seq + 1 !== item.seq){
+                    break;
+                }
+                this._seqList.push(item);
+                lastItem = item;
+                this._sortedList.removeItem(item);
+            }
+            item = this._seqList[0];
+
+            return item;
+        }
+        else {
+            console.log("no item");
+            return null;
+        }
+    }
+
     getNextSeqItem () {
         let item = this._seqList[0];
         if (item !== null && item !== undefined) {
@@ -216,9 +262,6 @@ class SequentialList {
             if (lastItem.seq + 1 === item.seq) {
                 this._seqList.push(item);
                 lastItem = item;
-            }
-            else if (lastItem.seq > item.seq) {
-                return false;
             }
             else {
                 this._sortedList.putItem(item);
