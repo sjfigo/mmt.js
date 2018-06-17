@@ -8,6 +8,7 @@ var TimedMediaMFUHeader = require("./../payload-manager/timed-media_MFU");
 var NonTimedMediaMFUHeader = require("./../payload-manager/non-timed_media_MFU");
 var Payloadizer = require("./../payload-manager/payloadizer");
 var DUType = require("./../payload-manager/du-type");
+var Sleep = require('sleep');
 
 var that = null;
 var cnt = 0;
@@ -111,7 +112,7 @@ class mmtpSender {
             let mpuData = that.fileController.readBinFile(mpuPath);
             //console.log("Read MPU finish");
 
-            setTimeout(this.sendNextMPU, i*1000, mpuData, i, true);
+            setTimeout(this.sendNextMPU, i*3000, mpuData, i, true);
         }
     }
 
@@ -211,11 +212,13 @@ class mmtpSender {
             let packet = that.mmtpPacketizer.packet;
             while (packet !== null) {
                 //console.log("send packet "+packet);
-                that.udpSock.sendUDPSock(packet, that.clientPort_, that.clientAddr_);
+
+                that.udpSock.sendUDPSock(packet.data, that.clientPort_, that.clientAddr_);
                 if (that.packetSendDebug === true) {
-                    sentPackets.writeBinFile("./Server/packets/packet-"+packetCnt+".log", packet);
+                    sentPackets.writeBinFile("./Server/packets/packet-"+packet.seq+".log", packet.data);
                     packetCnt++;
                 }
+                
                 packet = that.mmtpPacketizer.packet;
             }
         }

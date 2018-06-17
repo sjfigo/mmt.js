@@ -68,7 +68,8 @@ class mmtClient {
 
     onRecvMPU (mpu) {
         // Pass to MSE
-        this.fileController.writeBinFile("./output/"+that.fileCnt.toString(), mpu);
+        that.fileController.writeBinFile("./Client/output/00"+that.fileCnt.toString()+".mp4", mpu.data);
+        that.fileCnt++;
     }
 }
 module.exports = mmtClient;

@@ -4,6 +4,8 @@ var mmtpDepacketizer = require("../packet-manager/mmtp-depacketizer");
 var Depayloadizer = require("../payload-manager/depayloadizer");
 var MPURebuilder = require("../mpu-manager/mpu-rebuilder");
 var FileController = require("../util/file-controller");
+var Dequeue = require("dequeue");
+var FIFO = new Dequeue();
 var payloadCnt = 0;
 var packetCnt = 0;
 
@@ -37,6 +39,7 @@ class mmtpReceiver {
         this.outPayloads = new FileController();
 
         this.packetRecvDebug = false;
+        this.composeFragment = false;
 
         that = this;
     }
@@ -54,41 +57,66 @@ class mmtpReceiver {
         let portBuf = new Buffer(that.sock.port.toString());
         that.client_.send(portBuf);
 
-        that.rebuilderInterval = setInterval(that.pushMpuFragmentToMpuRebuilder, 100);
+        that.rebuilderInterval = setInterval(that.pushMpuFragmentToMpuRebuilder, 180000);
     }
 
     onRecv (packet, info) {
         //console.log("Recv packet - size: " + info.size);
-        that.mmtpDepack.packet = packet;
-        if (that.packetRecvDebug === true) {
-            that.recvPackets.writeBinFile("./Client/packets/packet-"+packetCnt+".log", packet);
-            packetCnt++;
-        }
+        FIFO.push(packet);
+    }
 
-        let stPacket = that.mmtpDepack.packet;
-        if (stPacket !== null) {
-            that.udpBuffer.setPacket(stPacket, stPacket.packetSequenceNumber);
-            
-            if (that.prePacketId < stPacket.packetID) {
-                console.log("Pushed to assemblyMPUFragId - " + that.prePacketId);
-                that.assemblyMPUFragId.push(that.prePacketId);
-                that.prePacketId = stPacket.packetID;
+    packetDequeue () {
+        let dequeue = false;
+        if (that.noFragCnt < 50) {
+            while(FIFO.length > 0) {
+                let packet = FIFO.shift();
+                that.mmtpDepack.packet = packet;
+
+                let stPacket = that.mmtpDepack.packet;
+                if (stPacket !== null) {
+                    if (that.packetRecvDebug === true) {
+                        that.recvPackets.writeBinFile("./Client/packets/packet-"+stPacket.packetSequenceNumber+".log", packet);
+                        packetCnt++;
+                    }
+                    that.udpBuffer.setPacket(stPacket, stPacket.packetSequenceNumber);
+                    
+                    if (that.prePacketId < stPacket.packetID) {
+                        console.log("Pushed to assemblyMPUFragId - " + that.prePacketId);
+                        that.assemblyMPUFragId.push(that.prePacketId);
+                        that.prePacketId = stPacket.packetID;
+                    }
+                }
+                dequeue = true;
             }
         }
+        return dequeue;
     }
 
     pushMpuFragmentToMpuRebuilder () {
         console.log("pushMpuFragmentToMpuRebuilder - begin");
-        let mpuFrag = that.getMPUFragment(false);
-        if (mpuFrag !== null && mpuFrag !== undefined) {
-            that.mpuRebuilder.mpuFrag = mpuFrag;
-        }
-        else {
-            that.noFragCnt ++;
-            if (that.noFragCnt > 100) {
-                console.log("pushMpuFragmentToMpuRebuilder - clear");
-                clearInterval(that.rebuilderInterval);
+
+        if (that.composeFragment === false) {
+            that.composeFragment = true;
+
+            if (that.packetDequeue() === false) {
+                return false;
             }
+
+            let mpuFrag = that.getMPUFragment(false);
+            while (mpuFrag !== null) {
+                if (mpuFrag !== null && mpuFrag !== undefined) {
+                    that.mpuRebuilder.mpuFrag = mpuFrag;
+                }
+                else {
+                    that.noFragCnt ++;
+                    if (that.noFragCnt > 50) {
+                        console.log("pushMpuFragmentToMpuRebuilder - clear");
+                        clearInterval(that.rebuilderInterval);
+                    }
+                }
+                mpuFrag = that.getMPUFragment(false);
+            }
+            that.composeFragment = false;
         }
         console.log("pushMpuFragmentToMpuRebuilder - end");
     }
@@ -136,7 +164,7 @@ class mmtpReceiver {
                     }
                 }
 
-                return mpuFrag.data; // -> mpuFrag 구조 확인 for Rebuilder --> Refer to mpu-fragment.js
+                return mpuFrag; // -> mpuFrag 구조 확인 for Rebuilder --> Refer to mpu-fragment.js
             }
             else {
                 return null;

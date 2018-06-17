@@ -1,3 +1,5 @@
+var dgram = require("dgram");
+        
 class UDPController {
     constructor () {
         this.udpSock = null;
@@ -10,8 +12,7 @@ class UDPController {
     }
 
     createUDPSock (size) {
-        var dgram = require("dgram");
-        this.udpSock = dgram.createSocket({type:"udp6", recvBufferSize:1024*1024*5});
+        this.udpSock = dgram.createSocket({type:"udp6", recvBufferSize:1024*1024*5, sendBufferSize:1024*1024*5});
         
         this.udpSock.on("error", (err) => {
             if (err !== null) {

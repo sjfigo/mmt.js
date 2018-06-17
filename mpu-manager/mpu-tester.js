@@ -1,4 +1,4 @@
-var FileController = require("../Client/util/file-controller.js");
+var FileController = require("../util/file-controller.js");
 var MPUDissolver = require("./mpu-dissolver.js");
 var MPURebuilder = require("./mpu-rebuilder.js");
 var MPU = require("./mmt-structure/mpu.js");
@@ -6,9 +6,9 @@ var that = null;
 
 class MPUTester {
     constructor () {
-        this.mpu_path = null;
-        this.inMPUPath = "./mpu-manager/mpus/";
-        this.outMPUPath = "./mpu-manager/OutputMPUs/";
+        this.inMPUPath = null;
+        this.outMPUPath = null;
+        this.mpu_name = null;
         this.outMPUFsCnt = 0;
 
         this.mpuData = null;
@@ -21,12 +21,20 @@ class MPUTester {
         that = this;
     }
 
-    set path (path) {
-        this.mpu_path = path;
+    set inPath (path) {
+        this.inMPUPath = path;
+    }
+
+    set outPath (path) {
+        this.outMPUPath = path;
+    }
+
+    set filename (name) {
+        this.mpu_name = name;
     }
 
     readMPU () {
-        let data = this.fileController.readBinFile(this.mpu_path);
+        let data = this.fileController.readBinFile(this.inMPUPath + this.mpu_name);
         this.mpuData = data;
     }
 
@@ -38,7 +46,7 @@ class MPUTester {
     }
 
     printMPU (mpu) {
-        let path = that.outMPUPath + that.outMPUFsCnt + ".mp4";
+        let path = that.outMPUPath + that.mpu_name;
         console.log("Out: " + path);
         that.fileController.writeBinFile(path, mpu.data);
     }
@@ -60,7 +68,9 @@ class MPUTester {
 module.exports = MPUTester;
 
 var mpuTester = new MPUTester();
-mpuTester.path = mpuTester.inMPUPath + "000.mp4";
+mpuTester.filename = "000.mp4";
+mpuTester.inPath = "./mpu-manager/mpus/";
+mpuTester.outPath = "./mpu-manager/OutputMPUs/";
 mpuTester.readMPU();
 mpuTester.dissolve();
 mpuTester.rebuild();

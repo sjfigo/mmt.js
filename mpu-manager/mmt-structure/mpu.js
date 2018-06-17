@@ -6,7 +6,7 @@ class MPU {
         else {
             this.mpuData = Buffer.from("");
         }
-        this.descriptor = 0;
+        this.descriptor_ = 0;
         if (size !== undefined) {
             this.mpuDataSize = size;
         }
@@ -25,6 +25,12 @@ class MPU {
         this.videoSampleSizeSeekNum = null;
         this.videoSampleOffset = null;
         this.hintSampleOffset = null;
+    }
+    get descriptor () {
+        return this.descriptor_;
+    }
+    set descriptor (des) {
+        this.descriptor_ = des;
     }
     get data () {
         return this.mpuData;

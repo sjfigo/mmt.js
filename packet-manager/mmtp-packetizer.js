@@ -108,7 +108,7 @@ class mmtpPacketizer {
             fragment.copy(payloadData, 0, i, i + copyLen);
             packet.payload_data = payloadData;
             let packetData = this.packetize(packet, copyLen, packetHeaderSize);
-            this.packetList.push(packetData);
+            this.packetList.push({data:packetData, seq:packet.packetSequenceNumber});
             //console.log("packetize - "+i+" "+fragSize+" "+payloadMaxSize);
         }
     }
