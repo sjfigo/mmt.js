@@ -7,16 +7,21 @@ var FileController = require("../util/file-controller");
 var Dequeue = require("dequeue");
 var FIFO = new Dequeue();
 var payloadCnt = 0;
-var packetCnt = 0;
 
 var that = null;
 
 class mmtpReceiver {
-    constructor (host, port, client, cbPostMPU) {
+    constructor (host, port, client, cbPostMPU, udpSockType) {
         this.port_ = port;
         this.host_ = host;
         this.client_ = client;
-        this.sock = new UdpController();
+        
+        this.sock = new UdpController(udpSockType);
+        if (this.sock === null) {
+            return null;
+        }
+        this.sock.MediaStreamType = "receiver";
+        this.sock.createUDPSock();
         this.sock.onRecvCB = this.onRecv;
 
         //this.recvPackets = [];
@@ -45,7 +50,6 @@ class mmtpReceiver {
     }
 
     ready () {
-        this.sock.createUDPSock();
         console.log("bind - start: "+ this.host_+" "+this.port_);
         this.sock.bind(this.host_, this.port_, this.sayHello);
         console.log("bind - end");
@@ -57,11 +61,11 @@ class mmtpReceiver {
         let portBuf = new Buffer(that.sock.port.toString());
         that.client_.send(portBuf);
 
-        that.rebuilderInterval = setInterval(that.pushMpuFragmentToMpuRebuilder, 180000);
+        that.rebuilderInterval = setInterval(that.pushMpuFragmentToMpuRebuilder, 1000);
     }
 
     onRecv (packet, info) {
-        //console.log("Recv packet - size: " + info.size);
+        console.log("Recv packet - size: " + info.size);
         FIFO.push(packet);
     }
 
@@ -76,7 +80,6 @@ class mmtpReceiver {
                 if (stPacket !== null) {
                     if (that.packetRecvDebug === true) {
                         that.recvPackets.writeBinFile("./Client/packets/packet-"+stPacket.packetSequenceNumber+".log", packet);
-                        packetCnt++;
                     }
                     that.udpBuffer.setPacket(stPacket, stPacket.packetSequenceNumber);
                     
@@ -195,6 +198,12 @@ class mmtpReceiver {
 
     set host (host) {
         this.host_ = host;
+    }
+
+    set remoteWebRtcCandidate (candidate) {
+        if (this.sock) {
+            this.sock.remoteWebRtcCandidate = candidate;
+        }
     }
 }
 module.exports = mmtpReceiver;

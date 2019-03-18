@@ -4,10 +4,16 @@
   "description": "Web MMT player (MPEG Media Transport)",
   "main": "app/index.js",
   "dependencies": {
+    "bufferutil": "^4.0.0",
     "dequeue": "^1.0.5",
     "fs": "^0.0.1-security",
+    "getusermedia": "^2.0.1",
     "ntp-client": "^0.5.3",
-    "sleep": "^5.1.1"
+    "rtc": "^3.4.0",
+    "sleep": "^5.1.1",
+    "utf-8-validate": "^5.0.1",
+    "websocket": "^1.0.28",
+    "wrtc": "^0.3.3"
   },
   "devDependencies": {},
   "scripts": {

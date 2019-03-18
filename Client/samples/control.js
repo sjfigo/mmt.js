@@ -1,4 +1,4 @@
-var MMTPlayer = require("../src/mmt-player.js");
+var MMTPlayer = require("../mmt-client");
 
 var playerControls = function() {};
 

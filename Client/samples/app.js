@@ -1,4 +1,5 @@
-var MMTPlayer = require("../src/mmt-player.js");
+var MMTPlayer = require("../mmt-client.js");
+var BrowserCode = require("../src/browser-code.js");
 
 /**
  * The application layer of the test application.
@@ -24,21 +25,21 @@ app.player = null;
  *
  * @private {http url string}
  */
-app.contentUrl = "http://10.10.15.27:8000/dash264/TestCases/1a/netflix/exMPD_BIP_TC1.mpd";
+app.server_ip = "192.168.1.12";
+app.server_port = 1337;
 
 
 /**
  * Initializes the application.
  */
-app.init = function() {
-  var playerControls = null;
-  
+app.init = function() {  
   app.video = 
       /** @type {!HTMLVideoElement} */ (document.getElementById("videoTag"));
 
-  app.player = new MMTPlayer(app.video, playerControls/*, contentUrl*/);
-  
-//  playerControls.init(app.video_);  
+  var browserCode = new BrowserCode(window, document);
+
+  app.player = new MMTPlayer(app.video, browserCode.currentBrowserCode);
+  app.player.callSetupConnect(app.server_ip, app.server_port);
 };
 
 if (document.readyState == "complete" ||

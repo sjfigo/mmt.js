@@ -16,6 +16,7 @@ class MPURebuilder {
         this.moofMetadata = new moofMetadata();
         this.lastMpuSize = 0;
         this.concatedFrags = [];
+        this.lastMfuNum = 0;
     }
 
     /**
@@ -31,9 +32,11 @@ class MPURebuilder {
         console.log("compose begin");
         if(this.postMPU !== null && this.postMPU !== undefined) {
             console.log(this.postMPU);
-            if (mpuFrag.type === MPU_Fragment_Type.MPU_Metadata && this.mpuFrags.length > 0) {
-                this.concatenateMPUFrags();
+            if (mpuFrag.type === MPU_Fragment_Type.MPU_Metadata && this.mpu.dataSize !== undefined && this.mpu.dataSize > 0) {
+                //this.concatenateMPUFrags();
+                console.log("MPU number: " + this.mpu.mpu_number)
                 this.postMPU(this.mpu);
+                this.reset();
             }
         }
         else {
@@ -43,10 +46,20 @@ class MPURebuilder {
         this.composeMPUFrags(mpuFrag);
     }
 
+    reset () {
+        this.mpu = new MPU();
+        this.mpuFrags.splice(0, this.mpuFrags.length);
+        this.composedFragNum = 0;
+        this.lastMpuSize = 0;
+        this.moofMetadata = new moofMetadata();
+        this.concatedFrags.splice(0, this.concatedFrags.length);
+        this.lastMfuNum = 0;
+    }
+
     resolve () {
         if(this.postMPU !== null && this.postMPU !== undefined) {
             console.log(this.postMPU);
-            this.concatenateMPUFrags();
+            //this.concatenateMPUFrags();
             this.postMPU(this.mpu);
         }
         else {
@@ -93,7 +106,7 @@ class MPURebuilder {
         let size = targetPosition + dataLength;
         let resultBuffer = null;
 
-        if (targetLength > size) {
+        if (target === undefined || targetLength > size) {
             resultBuffer = Buffer.allocUnsafe(targetLength).fill(0x00);
             target.copy(resultBuffer, 0, 0, targetLength);
             data.copy(resultBuffer, targetPosition, dataPosition, dataPosition + dataLength);
@@ -117,11 +130,39 @@ class MPURebuilder {
      * @param {*Number} dataSize 
      */
     setMPUFragPos (position, data, dataPos, dataSize) {
-        if (dataSize > 0) {
-            console.log("setMPUFragPos - Put mpuFrags to [" + position.toString() + "]");
+        if (dataSize > 0) {//position이 잘못됬다!!
+            /*if (this.mpu.allocSize < dataPos + dataSize) {
+                if (this.mpu.allocSize === 0) {
+                    this.mpu.allocSize = dataPos + dataSize;
+                    let allocSize = this.mpu.allocSize * 2;
+                    this.mpu.data = Buffer.allocUnsafe(allocSize).fill(0x00);
+                    this.mpu.alloc_size = allocSize;
+                    this.mpu.data = this.bufferCopy(this.mpu.data, position, data, dataPos, dataSize);
+                }
+                else {
+                    let allocSize = this.mpu.allocSize;
+                    do {
+                        allocSize += this.mpu.allocSize;
+                    } while (allocSize < dataPos + dataSize);
+                    let mpuData = Buffer.allocUnsafe(allocSize).fill(0x00);
+                    this.bufferCopy(mpuData, 0, this.mpu.data, 0, this.mpu.allocSize);
+                    this.bufferCopy(mpuData, position, data, dataPos, dataSize);
+
+                    this.mpu.data = Buffer.allocUnsafe(allocSize).fill(0x00);
+                    this.bufferCopy(this.mpu.data, 0, mpuData, 0, allocSize);
+                    this.mpu.alloc_size = allocSize;
+                }
+            }
+            else {*/
+            this.mpu.data = this.bufferCopy(this.mpu.data, position, data, dataPos, dataSize);
+            //}
+            if (this.mpu.dataSize < dataPos + dataSize) {
+                this.mpu.dataSize = dataPos + dataSize;
+            }
+            /*console.log("setMPUFragPos - Put mpuFrags to [" + position.toString() + "]");
             this.mpuFrags[position.toString()] = Buffer.allocUnsafe(dataSize).fill(0x00);
             this.mpuFrags[position.toString()] = this.bufferCopy(this.mpuFrags[position.toString()], 0, data, dataPos, dataSize);
-            this.mpu.dataSize = this.mpu.dataSize + dataSize;
+            this.mpu.dataSize = this.mpu.dataSize + dataSize;*/
         }
         else {
             console.log("setMPUFragPos - DataSize is less then 0.");
@@ -156,7 +197,7 @@ class MPURebuilder {
                 let length = this.mpuFrags[strIterator].length;
                 if (!this.concatedFrags.includes(i)) {
                     this.mpu.data = this.bufferCopy(this.mpu.data, i, this.mpuFrags[strIterator], 0, this.mpuFrags[strIterator].length);
-                    this.mpuFrags.splice(strIterator, 1);
+                    //this.mpuFrags.splice(strIterator, 1);
                     this.concatedFrags.push(i);
                 }
 
@@ -198,10 +239,8 @@ class MPURebuilder {
         let ret = false;
 
         let mmpu = Buffer.from("mmpu");
-        let mmpuLen = mmpu.length;
         let moov = Buffer.from("moov");
-        let moovLen = moov.length;
-
+        
         if (mpuFrag.type === MPU_Fragment_Type.MPU_Metadata) {
             let iterator = 0;
             console.log("mpuFrag.length: " + mpuFrag.data.length);
@@ -414,6 +453,7 @@ class MPURebuilder {
         console.log("this.moofMetadata.mdat_offset: " + this.moofMetadata.mdat_offset);
         this.moofMetadata.mdat_size = this.getIntTo4ByteBuffer(mpuFrag.data, mpuFrag.size-8);
         this.mpu.video_sample_count = 0;
+        this.lastMfuNum = 0;
 
         return true;
     }
@@ -428,19 +468,24 @@ class MPURebuilder {
             hintSampleSize += 2;
         }
 
-        if (mpuFrag.typeInfo.mfu_num !== mpuFrag.typeInfo.next_mfu_num) {
-            while (mpuFrag.typeInfo.mfu_num > mpuFrag.typeInfo.next_mfu_num) {
+        if (mpuFrag.typeInfo.mfu_num !== this.lastMfuNum) {//mpuFrag.typeInfo.next_mfu_num) {
+            while (mpuFrag.typeInfo.mfu_num > this.lastMfuNum) {//mpuFrag.typeInfo.next_mfu_num) {
                 //mmte_khu1_GetSampleOffsetinRebuilder
                 this.getSampleOffset(mpuFrag);
-                mpuFrag.typeInfo.next_mfu_num++;
+                //mpuFrag.typeInfo.next_mfu_num++;
+                this.lastMfuNum++;
             }
         }
+        else {
+            //mmte_khu1_GetSampleOffsetinRebuilder
+            this.getSampleOffset(mpuFrag);
+        }
 
-        //mmte_khu1_GetSampleOffsetinRebuilder
-        this.getSampleOffset(mpuFrag);
+        console.log("this.mpu.video_sample_offset: "+this.mpu.video_sample_offset);
+        console.log("this.mpu.hint_sample_offset: "+this.mpu.hint_sample_offset);
         
-        this.setMPUFragPos(mpuFrag.hint_sample_offset, mpuFrag.data, 0, hintSampleSize);
-        this.setMPUFragPos(mpuFrag.video_sample_offset, mpuFrag.data, hintSampleSize, mpuFrag.size - hintSampleSize);
+        this.setMPUFragPos(this.mpu.hint_sample_offset, mpuFrag.data, 0, hintSampleSize);
+        this.setMPUFragPos(this.mpu.video_sample_offset, mpuFrag.data, hintSampleSize, mpuFrag.size - hintSampleSize);
 
         return true;
     }
@@ -460,10 +505,12 @@ class MPURebuilder {
         let tfhdLen = tfhd.length;
         let trun = Buffer.from("trun");
         let trunLen = trun.length;
-
+        let moofboxsize = this.getIntTo4ByteBuffer(this.mpu.data, this.mpu.moof_offset);
+        let moof = Buffer.allocUnsafe(moofboxsize).fill(0x00);//this.mpuFrags[this.mpu.moof_offset.toString()];
+        moof = this.bufferCopy(moof, 0, this.mpu.data, this.mpu.moof_offset, moofboxsize);
+        moofboxsize -= 8;
         if (this.mpu.video_sample_count === 0) {
-            let moof = this.mpuFrags[this.mpu.moof_offset.toString()];
-            let moofboxsize = this.getIntTo4ByteBuffer(moof, iterator) - 8;
+            
             iterator += 8;
 
             console.log("moofboxsize: " + moofboxsize);
@@ -569,9 +616,9 @@ class MPURebuilder {
                         }
 
                         this.mpu.video_sample_count = sample_count;
-                        mpuFrag.video_sample_size_offset = sizeValuePtr;// + this.mpu.moof_offset;
-                        mpuFrag.video_sample_size_seek_num = skipNum;
-                        mpuFrag.video_sample_offset = baseDataOffset + data_offset;
+                        this.mpu.video_sample_size_offset = sizeValuePtr;// + this.mpu.moof_offset;
+                        this.mpu.video_sample_size_seek_num = skipNum;
+                        this.mpu.video_sample_offset = baseDataOffset + data_offset;
                     }
                     
                     if(trafId === this.mpu.hint_trak_id) {
@@ -579,7 +626,7 @@ class MPURebuilder {
                         let data_offset = this.getIntTo4ByteBuffer(moof, iterator);
                         iterator += 4;
 
-                        mpuFrag.hint_sample_offset = baseDataOffset + data_offset;
+                        this.mpu.hint_sample_offset = baseDataOffset + data_offset;
                         //this.mpu.hint_sample_offset = baseDataOffset + data_offset;
                     }
 
@@ -593,21 +640,24 @@ class MPURebuilder {
             let video_sample_size = 0;
             let hint_sample_size = 0;
 
-            iterator = mpuFrag.video_sample_size_offset;
-            video_sample_size = this.getIntTo4ByteBuffer(mpuFrag.data, iterator);
+            iterator = this.mpu.video_sample_size_offset;
+            if (moof.length < iterator + 4) {
+                return 0;
+            }
+            video_sample_size = this.getIntTo4ByteBuffer(moof, iterator);
             iterator += 4;
 
             hint_sample_size = 4;
-            if (mpuFrag.asset_type === AssetType.timed) {
+            if (this.mpu.asset_type === AssetType.timed) {
                 hint_sample_size += 26;
             }
             else {
                 hint_sample_size += 2;
             }
 
-            mpuFrag.video_sample_size_offset += mpuFrag.video_sample_size_seek_num;
-            mpuFrag.video_sample_offset += video_sample_size;
-            mpuFrag.hint_sample_offset += hint_sample_size;
+            this.mpu.video_sample_size_offset += this.mpu.video_sample_size_seek_num;
+            this.mpu.video_sample_offset += video_sample_size;
+            this.mpu.hint_sample_offset += hint_sample_size;
         }
     }
 }

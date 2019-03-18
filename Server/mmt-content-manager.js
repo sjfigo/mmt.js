@@ -26,12 +26,17 @@ class mmtContentManager {
 
     getAsset (id) {
         console.log("asset id - " + id);
-        let asset = that.assetList.find(function findAsset (obj) {
+        let assetInfo = that.assetList.find(function findAsset (obj) {
             console.log("obj.id - " + obj.id);
             return obj.id === id;
         });
 
-        return asset.asset;
+        if (assetInfo) {
+            return assetInfo.asset;
+        }
+        else {
+            return null;
+        }
     }
 
     

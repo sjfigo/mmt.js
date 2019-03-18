@@ -6,6 +6,7 @@ class MPU {
         else {
             this.mpuData = Buffer.from("");
         }
+        this.allocSize = 0;
         this.descriptor_ = 0;
         if (size !== undefined) {
             this.mpuDataSize = size;
@@ -37,6 +38,12 @@ class MPU {
     }
     set data (data) {
         this.mpuData = data;
+    }
+    get alloc_size () {
+        return this.allocSize;
+    }
+    set alloc_size (size) {
+        this.allocSize = size;        
     }
     get dataSize () {
         return this.mpuDataSize;
